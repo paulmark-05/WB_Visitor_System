@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Management System</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+
+<body>
+
+    <div class="form-container">
+        <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;justify-content:center;">
+
+            <img src="logo.jpg" style="width:120px;height:120px;object-fit:contain;">
+
+            <div>
+                <h1 style="margin:0;">Visitor Management System</h1>
+                <p style="margin:0;color:#666;">ZSB North 24 Parganas</p>
+            </div>
+
+        </div>
+
+
+
+
+        <form id="visitorForm">
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label id="rankLabel">Rank *</label>
+                    <input type="text" id="rank" required>
+                </div>
+
+                <div class="input-group">
+                    <label id="nameLabel">Name *</label>
+                    <input type="text" id="name" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label id="phoneLabel">Phone *</label>
+                    <input type="tel" id="phone" maxlength="10" required>
+                    <span id="phoneError" class="error-message"></span>
+                </div>
+
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="email">
+                    <span id="emailError" class="error-message"></span>
+                    <small class="note">(Optional) for token sent to email</small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+
+                    <label>ZSB ID Card No.</label>
+
+                    <div class="zsb-wrapper">
+                        <div class="zsb-prefix" id="zsbPrefix" style="font-size:14px;">
+                            WB 10/
+                        </div>
+
+
+                        <div class="zsb-input-container">
+                            <input type="text" id="zsbId" maxlength="6" placeholder="123456" class="zsb-input">
+                        </div>
+                    </div>
+
+                    <small class="note">(e.g. WB 10/------)</small>
+                    <small class="note">Leave empty for new card request</small>
+                    <span id="zsbError" class="error-message"></span>
+
+                </div>
+
+                <div class="input-group">
+                    <label>Service No. *</label>
+                    <input type="text" id="serviceNo" required>
+                </div>
+
+                <div class="input-group">
+                    <label id="dateLabel">Date *</label>
+                    <input type="text" id="datePicker" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label id="branchLabel">ZSB Branch *</label>
+                    <select id="branch" required>
+                        <option selected>ZSB North 24 Parganas</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label id="subLabel">Sub Division *</label>
+                    <select id="subDivision" required>
+                        <option value="" disabled selected>Select Sub Division</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="input-group">
+                    <label id="workLabel">Work from ZSB *</label>
+                    <p class="note">You can select only one option. Register separately for each job to be done.</p>
+                    <div id="workOptions"></div>
+                </div>
+            </div>
+
+            <div class="consent-container">
+                <label>
+                    <input type="checkbox" id="consentCheckbox">
+                    Confirm details before submitting
+                </label>
+            </div>
+
+            <button id="submitBtn" type="submit" disabled>SUBMIT</button>
+
+        </form>
+    </div>
+
+    <div id="submitOverlay" class="submit-overlay">
+
+        <div class="submit-box">
+
+            <div class="loader"></div>
+
+            <h2 id="submitMessage">
+                Submitting...
+            </h2>
+
+            <p id="submitSubtext">
+                Please wait while we generate your token
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="script.js"></script>
+    <script src="formHandler.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
+</body>
+
+</html>

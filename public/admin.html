@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="form-container">
+        <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;justify-content:center;">
+
+            <img src="logo.jpg" style="width:100px;height:100px;object-fit:contain;">
+
+            <div>
+                <h1 style="margin:0;">ZSB Visitor Management System</h1>
+                <p style="margin:0;color:#666;">Admin Dashboard</p>
+            </div>
+
+        </div>
+
+
+        <h3>Counters Control</h3>
+        <div id="counterPanel"></div>
+
+        <label>Select Date:</label>
+        <input type="date" id="dateFilter" onchange="loadVisitors()">
+        <div class="search-container">
+
+    <div class="search-box">
+        <label>Search By</label>
+
+        <select id="columnSelect">
+            <option value="">
+                Select Column
+            </option>
+
+            <option value="rank">
+                Rank
+            </option>
+
+            <option value="name">
+                Name
+            </option>
+
+            <option value="phone">
+                Phone
+            </option>
+
+            <option value="subDivision">
+                Sub Division
+            </option>
+
+            <option value="workType">
+                Work
+            </option>
+
+            <option value="counter">
+                Counter
+            </option>
+
+            <option value="status">
+                Status
+            </option>
+        </select>
+    </div>
+
+    <div class="search-box">
+        <label>Value</label>
+
+        <select id="valueSelect">
+            <option value="">
+                Select Value
+            </option>
+        </select>
+    </div>
+
+    <div class="search-box">
+        <label>From Date</label>
+        <input type="date" id="fromDate">
+    </div>
+
+    <div class="search-box">
+        <label>To Date</label>
+        <input type="date" id="toDate">
+    </div>
+
+    <button
+    class="search-btn"
+    onclick="applyFilter()">
+        Search
+    </button>
+
+    <button
+    class="search-btn"
+    onclick="resetFilter()">
+        Reset
+    </button>
+
+</div>
+
+        <div class="table-wrapper">
+
+            <table id="visitorTable" border="1" width="100%">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>ZSB ID</th>
+                        <th>Service No.</th>
+                        <th>Subdivision</th>
+                        <th>Work</th>
+                        <th>Counter / Token</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody"></tbody>
+
+            </table>
+        </div>
+
+        <br>
+
+        <button id="exportBtn">Download Excel</button>
+
+        <div id="exportModal" class="export-modal">
+
+            <div class="export-card">
+
+                <h2>Export Visitor Data</h2>
+
+                <div class="export-row">
+                    <div>
+                        <label>From Date</label>
+                        <input type="date" id="fromDate">
+                    </div>
+
+                    <div>
+                        <label>To Date</label>
+                        <input type="date" id="toDate">
+                    </div>
+                </div>
+
+                <h3>Select Fields</h3>
+
+                <div class="field-grid">
+
+                    <label><input type="checkbox" value="rank" checked> Rank</label>
+                    <label><input type="checkbox" value="name" checked> Name</label>
+                    <label><input type="checkbox" value="phone" checked> Phone</label>
+                    <label><input type="checkbox" value="email" checked> Email</label>
+                    <label><input type="checkbox" value="zsbId" checked> ZSB ID</label>
+                    <label><input type="checkbox" value="serviceNo" checked> Service No</label>
+                    <label><input type="checkbox" value="subDivision" checked> Sub Division</label>
+                    <label><input type="checkbox" value="workType" checked> Work</label>
+                    <label><input type="checkbox" value="counter" checked> Counter</label>
+                    <label><input type="checkbox" value="sequence" checked> Token</label>
+                    <label><input type="checkbox" value="timeSlot" checked> Time Slot</label>
+                    <label><input type="checkbox" value="status" checked> Status</label>
+                    <label><input type="checkbox" value="date" checked> Date</label>
+
+                    <!-- BRANCH UNCHECKED BY DEFAULT -->
+                    <label><input type="checkbox" value="zsbBranch"> Branch</label>
+                </div>
+
+                <div class="export-actions">
+                    <button onclick="startExport()">Export Excel</button>
+                    <button onclick="closeExportModal()">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+        <div id="toast" class="toast-notification">
+            Excel downloaded successfully
+        </div>
+
+    </div>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="admin.js"></script>
+
+
+
+
+</body>
+
+</html>
