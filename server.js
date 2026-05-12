@@ -669,10 +669,11 @@ app.post("/send-token-email", async (req, res) => {
                     </p>
 
                     <p>
-                        <b>Date:</b>${exists.date
-                                    .split("-")
+                        <b>Date:</b>${date
+                                    ? date.split("-")
                                     .reverse()
-                                    .join("-")}
+                                    .join("-")
+                                    : ""}
                     </p>
 
                     <p>
@@ -739,6 +740,36 @@ app.post("/send-token-email", async (req, res) => {
             error: "Email failed"
         });
     }
+});
+
+//PATHS
+
+app.use(
+    express.static("public")
+);
+
+app.get("/", (req, res) => {
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "public",
+            "index.html"
+        )
+    );
+
+});
+
+app.get("/admin", (req, res) => {
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "public",
+            "admin.html"
+        )
+    );
+
 });
 
 /* ================================
