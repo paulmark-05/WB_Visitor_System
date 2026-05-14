@@ -62,12 +62,12 @@ async function fetchClosedCounters() {
     closedCounters = data.closedCounters;
 }
 
-function formatDate(dateStr){
+function formatDate(dateStr) {
 
-    if(!dateStr) return "";
+    if (!dateStr) return "";
 
     const [year, month, day] =
-    dateStr.split("-");
+        dateStr.split("-");
 
     return `${day}-${month}-${year}`;
 }
@@ -125,36 +125,143 @@ Select Sub Division
 
 
 // ================== CALENDAR ==================
+// ================== CALENDAR ==================
 function initCalendar() {
 
-    let start = new Date();
+    const today =
+        new Date();
 
-    // after 2PM → next day
-    if (new Date().getHours() > 14) {
-        start.setDate(start.getDate() + 1);
-    }
+    today.setHours(
+        0, 0, 0, 0
+    );
 
     let allowedDates = [];
-    let count = 0;
 
-    while (count < 7) {
+    function toISO(date) {
 
-        let d = new Date(start);
-        let iso = d.toISOString().split("T")[0];
+        const year =
+            date.getFullYear();
 
-        // skip weekends + holidays
-        if (d.getDay() !== 0 && d.getDay() !== 6 && !holidays.includes(iso)) {
-            allowedDates.push(iso);
-            count++;
-        }
+        const month =
+            String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
 
-        start.setDate(start.getDate() + 1);
+        const day =
+            String(
+                date.getDate()
+            ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
     }
 
-    flatpickr("#datePicker", {
-        dateFormat: "Y-m-d",
-        enable: allowedDates
-    });
+    function isWorkingDay(date) {
+
+        const iso =
+            toISO(date);
+
+        return (
+
+            date.getDay() !== 0 &&
+
+            date.getDay() !== 6 &&
+
+            !holidays.includes(iso)
+
+        );
+    }
+
+    // ---------- CASE 1 ----------
+    // Today is working day
+
+    if (isWorkingDay(today)) {
+
+        allowedDates.push(
+            toISO(today)
+        );
+
+        let nextWorking =
+            new Date(today);
+
+        do {
+
+            nextWorking.setDate(
+                nextWorking.getDate() + 1
+            );
+
+        }
+
+        while (
+            !isWorkingDay(
+                nextWorking
+            )
+        );
+
+        allowedDates.push(
+            toISO(
+                nextWorking
+            )
+        );
+
+    }
+
+    // ---------- CASE 2 ----------
+    // Today NOT working day
+
+    else {
+
+        let tempDate =
+            new Date(today);
+
+        while (
+            allowedDates.length < 2
+        ) {
+
+            tempDate.setDate(
+                tempDate.getDate() + 1
+            );
+
+            if (
+                isWorkingDay(
+                    tempDate
+                )
+            ) {
+
+                allowedDates.push(
+                    toISO(
+                        tempDate
+                    )
+                );
+            }
+        }
+    }
+
+    flatpickr(
+        "#datePicker",
+        {
+
+            dateFormat:
+                "Y-m-d",
+
+            altInput:
+                true,
+
+            altFormat:
+                "d-m-Y",
+
+            enable:
+                allowedDates,
+
+            defaultDate:
+                allowedDates[0]
+
+        }
+    );
+
+    console.log(
+        "Allowed dates:",
+        allowedDates
+    );
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
