@@ -128,12 +128,23 @@ Select Sub Division
 // ================== CALENDAR ==================
 function initCalendar() {
 
+    const now =
+        new Date();
+    
     const today =
         new Date();
 
     today.setHours(
         0, 0, 0, 0
     );
+
+    if (
+        now.getHours() >= 14
+    ) {
+        today.setDate(
+            today.getDate() + 1
+        );
+    }
 
     let allowedDates = [];
 
