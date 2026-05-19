@@ -25,7 +25,38 @@ function formatDate(dateStr) {
     const [year, month, day] =
         dateStr.split("-");
 
-    return `${day}-${month}-${year}`;
+    return `${day}/${month}/${year}`;
+}
+
+function formatRegistration(dateStr){
+
+    if(!dateStr)
+    return "—";
+
+    const d =
+    new Date(dateStr);
+
+    const day =
+    String(
+        d.getDate()
+    ).padStart(2,"0");
+
+    const month =
+    String(
+        d.getMonth()+1
+    ).padStart(2,"0");
+
+    const hour =
+    String(
+        d.getHours()
+    ).padStart(2,"0");
+
+    const minute =
+    String(
+        d.getMinutes()
+    ).padStart(2,"0");
+
+    return `${day}/${month} ${hour}:${minute}`;
 }
 
 
@@ -72,6 +103,7 @@ function renderTable(data) {
         <td>${v.serviceNo || "-"}</td>
         <td>${v.phone}</td>
         <td>${v.email || "—"}</td>
+        <td>${formatRegistration(v.createdAt)}</td>
         
         `;
 
@@ -412,3 +444,4 @@ async function startExport() {
 function closeExportModal() {
     exportModal.style.display = "none";
 }
+
