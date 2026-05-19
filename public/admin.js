@@ -41,6 +41,7 @@ async function loadVisitors() {
 
     populateFilterOptions();
     renderTable(allData);
+    updateCounters();
 
 }
 
@@ -112,20 +113,101 @@ function renderTable(data) {
         });
     });
 }
+function updateCounters(){
 
+    const total =
+    allData.length;
 
-// ================= STATUS =================
-async function toggleStatus(id, isChecked) {
+    const completed =
+    allData.filter(
+        v =>
+        v.status ===
+        "completed"
+    ).length;
 
-    await fetch(`/admin/complete/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            status: isChecked ? "completed" : "pending"
-        })
-    });
+    const pending =
+    allData.filter(
+        v =>
+        v.status !==
+        "completed"
+    ).length;
 
-    loadVisitors();
+    document.getElementById(
+        "totalCount"
+    ).textContent =
+    total;
+
+    document.getElementById(
+        "completedCount"
+    ).textContent =
+    completed;
+
+    document.getElementById(
+        "pendingCount"
+    ).textContent =
+    pending;
+}
+
+async function toggleStatus(
+    id,
+    isChecked
+) {
+
+    const newStatus =
+    isChecked
+    ? "completed"
+    : "pending";
+
+    await fetch(
+        `/admin/complete/${id}`,
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":
+                "application/json"
+            },
+
+            body:JSON.stringify({
+                status:newStatus
+            })
+        }
+    );
+
+    // UPDATE allData
+    const visitor =
+    allData.find(
+        v => v._id === id
+    );
+
+    if(visitor){
+
+        visitor.status =
+        newStatus;
+    }
+
+    // UPDATE ROW STYLE
+    const row =
+    document.querySelector(
+        `tr[data-id="${id}"]`
+    );
+
+    if(!row) return;
+
+    if(isChecked){
+
+        row.classList.add(
+            "completed-row"
+        );
+
+    }else{
+
+        row.classList.remove(
+            "completed-row"
+        );
+    }
+
+    updateCounters();
 }
 
 // ================= COUNTERS =================
@@ -206,15 +288,6 @@ function applyFilter(){
         "valueSelect"
     ).value;
 
-    const fromDate =
-    document.getElementById(
-        "fromDate"
-    ).value;
-
-    const toDate =
-    document.getElementById(
-        "toDate"
-    ).value;
 
     let filtered =
     [...allData];
@@ -229,24 +302,8 @@ function applyFilter(){
         );
     }
 
-    // ===== DATE RANGE =====
-    if(fromDate){
-
-        filtered =
-        filtered.filter(v =>
-            v.date >= fromDate
-        );
-    }
-
-    if(toDate){
-
-        filtered =
-        filtered.filter(v =>
-            v.date <= toDate
-        );
-    }
-
     renderTable(filtered);
+    updateCounters();
 }
 
 function resetFilter(){
@@ -264,15 +321,9 @@ function resetFilter(){
     </option>
     `;
 
-    document.getElementById(
-        "fromDate"
-    ).value = "";
-
-    document.getElementById(
-        "toDate"
-    ).value = "";
 
     renderTable(allData);
+    updateCounters();
 }
 
 
@@ -283,15 +334,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     exportBtn.addEventListener("click", () => {
         exportModal.style.display = "flex";
     });
-
-    const today =
-    new Date()
-    .toISOString()
-    .split("T")[0];
-
-    document.getElementById(
-        "toDate"
-    ).value = today;
 
     await loadVisitors();
 
