@@ -18,12 +18,12 @@ if (typeof io !== "undefined") {
 }
 
 
-function formatDate(dateStr){
+function formatDate(dateStr) {
 
-    if(!dateStr) return "";
+    if (!dateStr) return "";
 
     const [year, month, day] =
-    dateStr.split("-");
+        dateStr.split("-");
 
     return `${day}-${month}-${year}`;
 }
@@ -60,11 +60,6 @@ function renderTable(data) {
         <td>${formatDate(v.date)}</td>
         <td>${v.rank || ""}</td>
         <td>${v.name || ""}</td>
-        <td>${v.phone}</td>
-        <td>${v.email || "—"}</td>
-        <td>${v.zsbId || "—"}</td>
-        <td>${v.serviceNo || "-"}</td>
-        <td>${v.subDivision}</td>
         <td>${v.workType}</td>
         <td>C${v.counter} / T${v.sequence}</td>
         <td>
@@ -72,15 +67,21 @@ function renderTable(data) {
         ${v.status === "completed" ? "checked" : ""}
         onchange="toggleStatus('${v._id}', this.checked)">
         </td>
+        <td>${v.subDivision}</td>
+        <td>${v.zsbId || "—"}</td>
+        <td>${v.serviceNo || "-"}</td>
+        <td>${v.phone}</td>
+        <td>${v.email || "—"}</td>
+        
         `;
 
         tbody.appendChild(tr);
 
 
-        if(
-        v.status ===
-        "completed"
-        ){
+        if (
+            v.status ===
+            "completed"
+        ) {
 
             tr.classList.add(
                 "completed-row"
@@ -88,64 +89,64 @@ function renderTable(data) {
         }
 
         tr.addEventListener(
-        "click",
-        ()=>{
+            "click",
+            () => {
 
-            document
-            .querySelectorAll(
-                "#tableBody tr"
-            )
-            .forEach(row =>
-                row.classList.remove(
+                document
+                    .querySelectorAll(
+                        "#tableBody tr"
+                    )
+                    .forEach(row =>
+                        row.classList.remove(
+                            "selected-row"
+                        )
+                    );
+
+                tr.classList.add(
                     "selected-row"
-                )
-            );
+                );
 
-            tr.classList.add(
-                "selected-row"
-            );
+                tr.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest"
+                });
 
-            tr.scrollIntoView({
-                behavior:"smooth",
-                block:"nearest"
             });
-
-        });
     });
 }
-function updateCounters(){
+function updateCounters() {
 
     const total =
-    allData.length;
+        allData.length;
 
     const completed =
-    allData.filter(
-        v =>
-        v.status ===
-        "completed"
-    ).length;
+        allData.filter(
+            v =>
+                v.status ===
+                "completed"
+        ).length;
 
     const pending =
-    allData.filter(
-        v =>
-        v.status !==
-        "completed"
-    ).length;
+        allData.filter(
+            v =>
+                v.status !==
+                "completed"
+        ).length;
 
     document.getElementById(
         "totalCount"
     ).textContent =
-    total;
+        total;
 
     document.getElementById(
         "completedCount"
     ).textContent =
-    completed;
+        completed;
 
     document.getElementById(
         "pendingCount"
     ).textContent =
-    pending;
+        pending;
 }
 
 async function toggleStatus(
@@ -154,53 +155,53 @@ async function toggleStatus(
 ) {
 
     const newStatus =
-    isChecked
-    ? "completed"
-    : "pending";
+        isChecked
+            ? "completed"
+            : "pending";
 
     await fetch(
         `/admin/complete/${id}`,
         {
-            method:"POST",
+            method: "POST",
 
-            headers:{
+            headers: {
                 "Content-Type":
-                "application/json"
+                    "application/json"
             },
 
-            body:JSON.stringify({
-                status:newStatus
+            body: JSON.stringify({
+                status: newStatus
             })
         }
     );
 
     // UPDATE allData
     const visitor =
-    allData.find(
-        v => v._id === id
-    );
+        allData.find(
+            v => v._id === id
+        );
 
-    if(visitor){
+    if (visitor) {
 
         visitor.status =
-        newStatus;
+            newStatus;
     }
 
     // UPDATE ROW STYLE
     const row =
-    document.querySelector(
-        `tr[data-id="${id}"]`
-    );
+        document.querySelector(
+            `tr[data-id="${id}"]`
+        );
 
-    if(!row) return;
+    if (!row) return;
 
-    if(isChecked){
+    if (isChecked) {
 
         row.classList.add(
             "completed-row"
         );
 
-    }else{
+    } else {
 
         row.classList.remove(
             "completed-row"
@@ -276,37 +277,37 @@ function populateFilterOptions() {
 
 document.getElementById("columnSelect").addEventListener("change", populateFilterOptions);
 
-function applyFilter(){
+function applyFilter() {
 
     const column =
-    document.getElementById(
-        "columnSelect"
-    ).value;
+        document.getElementById(
+            "columnSelect"
+        ).value;
 
     const value =
-    document.getElementById(
-        "valueSelect"
-    ).value;
+        document.getElementById(
+            "valueSelect"
+        ).value;
 
 
     let filtered =
-    [...allData];
+        [...allData];
 
     // ===== COLUMN FILTER =====
-    if(column && value){
+    if (column && value) {
 
         filtered =
-        filtered.filter(v =>
-            String(v[column])
-            === value
-        );
+            filtered.filter(v =>
+                String(v[column])
+                === value
+            );
     }
 
     renderTable(filtered);
     updateCounters();
 }
 
-function resetFilter(){
+function resetFilter() {
 
     document.getElementById(
         "columnSelect"
@@ -315,7 +316,7 @@ function resetFilter(){
     document.getElementById(
         "valueSelect"
     ).innerHTML =
-    `
+        `
     <option value="">
     Select Value
     </option>
