@@ -18,6 +18,34 @@ app.use(express.urlencoded({
 
 app.use(express.static(path.join(__dirname, "public")));
 
+/* ================================
+   🌐 ROUTES
+================================ */
+
+app.get("/", (req, res) => {
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "public",
+            "index.html"
+        )
+    );
+
+});
+
+app.get("/admin", (req, res) => {
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "public",
+            "admin.html"
+        )
+    );
+
+});
+
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -677,10 +705,15 @@ app.post("/send-token-email", async (req, res) => {
                     </p>
 
                     <p>
-                        <b>Date:</b>${exists.date
-                    .split("-")
-                    .reverse()
-                    .join("-")}
+                        <b>Date:</b>
+                        ${
+                        date
+                        ? date
+                            .split("-")
+                            .reverse()
+                            .join("-")
+                        : ""
+                        }
                     </p>
 
                     <p>
@@ -752,10 +785,15 @@ app.post("/send-token-email", async (req, res) => {
 /* ================================
    🚀 START SERVER
 ================================ */
-server.listen(3000, () => {
-    console.log("🚀 Server running:");
-    console.log("👉 Visitor Form: http://localhost:3000/index.html");
-    console.log("👉 Admin Panel : http://localhost:3000/admin.html");
+const PORT =
+process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+
+    console.log(
+        `🚀 Server running on port ${PORT}`
+    );
+
 });
 
 io.on("connection", (socket) => {
