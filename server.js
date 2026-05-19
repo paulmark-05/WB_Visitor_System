@@ -85,12 +85,12 @@ const visitorSchema = new mongoose.Schema({
 // 🚀 Prevent duplicate booking per day
 visitorSchema.index(
     {
-        rank:1,
-        name:1,
+        rank: 1,
+        name: 1,
         phone: 1,
         serviceNo: 1,
         date: 1,
-        counter:1,
+        counter: 1,
         workType: 1
     },
     {
@@ -408,42 +408,6 @@ app.get("/admin/export", async (req, res) => {
         },
 
         {
-            header: "Counter",
-            key: "counter",
-            width: 18
-        },
-
-        {
-            header:"Token",
-            key:"token",
-            width:15
-        },
-
-        {
-            header: "Status",
-            key: "status",
-            width: 15
-        },
-
-        {
-            header: "Time Slot",
-            key: "timeSlot",
-            width: 22
-        },
-
-        {
-            header: "Phone",
-            key: "phone",
-            width: 18
-        },
-
-        {
-            header: "Service No",
-            key: "serviceNo",
-            width: 18
-        },
-
-        {
             header: "Rank",
             key: "rank",
             width: 18
@@ -456,16 +420,35 @@ app.get("/admin/export", async (req, res) => {
         },
 
         {
-            header: "Email",
-            key: "email",
-            width: 32
+            header: "Work Type",
+            key: "workType",
+            width: 45
         },
 
         {
-            header: "ZSB ID",
-            key: "zsbId",
-            width: 22
+            header: "Counter",
+            key: "counter",
+            width: 18
         },
+
+        {
+            header: "Token",
+            key: "token",
+            width: 15
+        },
+
+        {
+            header: "Status",
+            key: "status",
+            width: 15
+        },
+
+
+        /*{
+            header: "Time Slot",
+            key: "timeSlot",
+            width: 22
+        },*/
 
         {
             header: "Subdivision",
@@ -474,50 +457,75 @@ app.get("/admin/export", async (req, res) => {
         },
 
         {
-            header: "Work Type",
-            key: "workType",
-            width: 45
+            header: "ZSB ID",
+            key: "zsbId",
+            width: 22
+        },
+
+
+        {
+            header: "Service No",
+            key: "serviceNo",
+            width: 18
+        },
+
+        {
+            header: "Phone",
+            key: "phone",
+            width: 18
+        },
+
+        {
+            header: "Email",
+            key: "email",
+            width: 32
         }
+
+
+
 
     ];
 
 
     data.forEach(v => {
 
-    sheet.addRow({
+        sheet.addRow({
 
-        date: v.date
-        ? v.date
-        .split("-")
-        .reverse()
-        .join("-")
-        : "",
+            date: v.date
+                ? v.date
+                    .split("-")
+                    .reverse()
+                    .join("-")
+                : "",
 
-        counter: v.counter || "",
+            rank: v.rank || "",
 
-        token: v.sequence || "",
+            name: v.name || "",
 
-        status: v.status || "pending",
+            workType: v.workType || "",
 
-        timeSlot: v.timeSlot || "",
+            counter: v.counter || "",
 
-        phone: v.phone || "",
+            token: v.sequence || "",
 
-        serviceNo: v.serviceNo || "",
+            status: v.status || "pending",
 
-        rank: v.rank || "",
+            // timeSlot: v.timeSlot || "",
 
-        name: v.name || "",
+            //zsbBranch: v.zsbBranch || "",
 
-        email: v.email || "",
+            subDivision: v.subDivision || "",
 
-        zsbId: v.zsbId || "",
+            zsbId: v.zsbId || "",
 
-        subDivision: v.subDivision || "",
+            serviceNo: v.serviceNo || "",
 
-        workType: v.workType || ""
+            phone: v.phone || "",
 
-    });
+            email: v.email || "",
+
+
+        });
 
     });
 
@@ -617,8 +625,8 @@ app.post("/send-token-email", async (req, res) => {
         // remove base64 prefix
         const base64Data =
             tokenImage.replace(
-            /^data:image\/(png|jpeg|jpg);base64,/,
-            ""
+                /^data:image\/(png|jpeg|jpg);base64,/,
+                ""
             );
 
         await transporter.sendMail({
@@ -669,11 +677,10 @@ app.post("/send-token-email", async (req, res) => {
                     </p>
 
                     <p>
-                        <b>Date:</b>${date
-                                    ? date.split("-")
-                                    .reverse()
-                                    .join("-")
-                                    : ""}
+                        <b>Date:</b>${exists.date
+                    .split("-")
+                    .reverse()
+                    .join("-")}
                     </p>
 
                     <p>
@@ -742,48 +749,13 @@ app.post("/send-token-email", async (req, res) => {
     }
 });
 
-//PATHS
-
-app.use(
-    express.static("public")
-);
-
-app.get("/", (req, res) => {
-
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "index.html"
-        )
-    );
-
-});
-
-app.get("/admin", (req, res) => {
-
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "admin.html"
-        )
-    );
-
-});
-
 /* ================================
    🚀 START SERVER
 ================================ */
-const PORT =
-process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-
-    console.log(
-        `🚀 Server running on port ${PORT}`
-    );
-
+server.listen(3000, () => {
+    console.log("🚀 Server running:");
+    console.log("👉 Visitor Form: http://localhost:3000/index.html");
+    console.log("👉 Admin Panel : http://localhost:3000/admin.html");
 });
 
 io.on("connection", (socket) => {
