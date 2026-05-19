@@ -24,8 +24,7 @@
         <h3>Counters Control</h3>
         <div id="counterPanel"></div>
 
-        <div
-style="
+        <div style="
 display:flex;
 align-items:center;
 gap:20px;
@@ -33,34 +32,29 @@ flex-wrap:wrap;
 margin-bottom:20px;
 ">
 
-    <div>
-        <label>
-            Select Date:
-        </label>
+            <div>
+                <label>
+                    Select Date:
+                </label>
 
-        <input
-        type="date"
-        id="dateFilter"
-        onchange="loadVisitors()">
-    </div>
+                <input type="date" id="dateFilter" onchange="loadVisitors()">
+            </div>
 
-    <div
-    style="
+            <div style="
     background:#f5f5f5;
     padding:10px 16px;
     border-radius:10px;
     font-weight:bold;
     ">
 
-        Total:
-        <span id="totalCount">
-            0
-        </span>
+                Total:
+                <span id="totalCount">
+                    0
+                </span>
 
-    </div>
+            </div>
 
-    <div
-    style="
+            <div style="
     background:#e8f5e9;
     padding:10px 16px;
     border-radius:10px;
@@ -68,15 +62,14 @@ margin-bottom:20px;
     color:green;
     ">
 
-        Completed:
-        <span id="completedCount">
-            0
-        </span>
+                Completed:
+                <span id="completedCount">
+                    0
+                </span>
 
-    </div>
+            </div>
 
-    <div
-    style="
+            <div style="
     background:#ffe0e0;
     padding:10px 16px;
     border-radius:10px;
@@ -84,79 +77,77 @@ margin-bottom:20px;
     color:#d90606;
     ">
 
-        Pending:
-        <span id="pendingCount">
-            0
-        </span>
+                Pending:
+                <span id="pendingCount">
+                    0
+                </span>
 
-    </div>
+            </div>
 
-</div>
+        </div>
 
-<div class="search-container">
+        <div class="search-container">
 
-    <div class="search-box">
-        <label>Search By</label>
+            <div class="search-box">
+                <label>Search By</label>
 
-        <select id="columnSelect">
-            <option value="">
-                Select Column
-            </option>
+                <select id="columnSelect">
+                    <option value="">
+                        Select Column
+                    </option>
 
-            <option value="rank">
-                Rank
-            </option>
+                    <option value="rank">
+                        Rank
+                    </option>
 
-            <option value="name">
-                Name
-            </option>
+                    <option value="name">
+                        Name
+                    </option>
 
-            <option value="phone">
-                Phone
-            </option>
+                    <option value="workType">
+                        Work
+                    </option>
 
-            <option value="subDivision">
-                Sub Division
-            </option>
+                    <option value="counter">
+                        Counter
+                    </option>
 
-            <option value="workType">
-                Work
-            </option>
+                    <option value="status">
+                        Status
+                    </option>
 
-            <option value="counter">
-                Counter
-            </option>
+                    <option value="phone">
+                        Phone
+                    </option>
 
-            <option value="status">
-                Status
-            </option>
-        </select>
-    </div>
-
-    <div class="search-box">
-        <label>Value</label>
-
-        <select id="valueSelect">
-            <option value="">
-                Select Value
-            </option>
-        </select>
-    </div>
+                    <option value="subDivision">
+                        Sub Division
+                    </option>
 
 
-    <button
-    class="search-btn"
-    onclick="applyFilter()">
-        Search
-    </button>
+                </select>
+            </div>
 
-    <button
-    class="search-btn"
-    onclick="resetFilter()">
-        Reset
-    </button>
+            <div class="search-box">
+                <label>Value</label>
 
-</div>
+                <select id="valueSelect">
+                    <option value="">
+                        Select Value
+                    </option>
+                </select>
+            </div>
+
+
+            <button class="search-btn" onclick="applyFilter()">
+                Search
+            </button>
+
+            <button class="search-btn" onclick="resetFilter()">
+                Reset
+            </button>
+
+        </div>
 
         <div class="table-wrapper">
 
@@ -166,14 +157,15 @@ margin-bottom:20px;
                         <th>Date</th>
                         <th>Rank</th>
                         <th>Name</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>ZSB ID</th>
-                        <th>Service No.</th>
-                        <th>Subdivision</th>
                         <th>Work</th>
                         <th>Counter / Token</th>
                         <th>Status</th>
+                        <th>Subdivision</th>
+                        <th>ZSB ID</th>
+                        <th>Service No.</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+
                     </tr>
                 </thead>
 
@@ -208,22 +200,29 @@ margin-bottom:20px;
 
                 <div class="field-grid">
 
-                    <label><input type="checkbox" value="rank" checked> Rank</label>
-                    <label><input type="checkbox" value="name" checked> Name</label>
-                    <label><input type="checkbox" value="phone" checked> Phone</label>
-                    <label><input type="checkbox" value="email" checked> Email</label>
-                    <label><input type="checkbox" value="zsbId" checked> ZSB ID</label>
-                    <label><input type="checkbox" value="serviceNo" checked> Service No</label>
-                    <label><input type="checkbox" value="subDivision" checked> Sub Division</label>
-                    <label><input type="checkbox" value="workType" checked> Work</label>
-                    <label><input type="checkbox" value="counter" checked> Counter</label>
-                    <label><input type="checkbox" value="sequence" checked> Token</label>
-                    <label><input type="checkbox" value="timeSlot" checked> Time Slot</label>
-                    <label><input type="checkbox" value="status" checked> Status</label>
                     <label><input type="checkbox" value="date" checked> Date</label>
 
-                    <!-- BRANCH UNCHECKED BY DEFAULT -->
-                    <label><input type="checkbox" value="zsbBranch"> Branch</label>
+                    <label><input type="checkbox" value="rank" checked> Rank</label>
+                    <label><input type="checkbox" value="name" checked> Name</label>
+                    <label><input type="checkbox" value="workType" checked> Work</label>
+
+                    <label><input type="checkbox" value="counter" checked> Counter</label>
+                    <label><input type="checkbox" value="sequence" checked> Token</label>
+                    <label><input type="checkbox" value="status" checked> Status</label>
+
+                    <label><input type="checkbox" value="subDivision" checked> Sub Division</label>
+
+                    <label><input type="checkbox" value="zsbId" checked> ZSB ID</label>
+                    <label><input type="checkbox" value="serviceNo" checked> Service No</label>
+                    <label><input type="checkbox" value="phone" checked> Phone</label>
+                    <label><input type="checkbox" value="email" checked> Email</label>
+
+
+
+                    <!-- 
+                    <label><input type="checkbox" value="timeSlot" checked> Time Slot</label>
+
+                    <label><input type="checkbox" value="zsbBranch"> Branch</label>-->
                 </div>
 
                 <div class="export-actions">
