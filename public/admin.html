@@ -24,9 +24,76 @@
         <h3>Counters Control</h3>
         <div id="counterPanel"></div>
 
-        <label>Select Date:</label>
-        <input type="date" id="dateFilter" onchange="loadVisitors()">
-        <div class="search-container">
+        <div
+style="
+display:flex;
+align-items:center;
+gap:20px;
+flex-wrap:wrap;
+margin-bottom:20px;
+">
+
+    <div>
+        <label>
+            Select Date:
+        </label>
+
+        <input
+        type="date"
+        id="dateFilter"
+        onchange="loadVisitors()">
+    </div>
+
+    <div
+    style="
+    background:#f5f5f5;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:bold;
+    ">
+
+        Total:
+        <span id="totalCount">
+            0
+        </span>
+
+    </div>
+
+    <div
+    style="
+    background:#e8f5e9;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:bold;
+    color:green;
+    ">
+
+        Completed:
+        <span id="completedCount">
+            0
+        </span>
+
+    </div>
+
+    <div
+    style="
+    background:#ffe0e0;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:bold;
+    color:#d90606;
+    ">
+
+        Pending:
+        <span id="pendingCount">
+            0
+        </span>
+
+    </div>
+
+</div>
+
+<div class="search-container">
 
     <div class="search-box">
         <label>Search By</label>
@@ -76,15 +143,6 @@
         </select>
     </div>
 
-    <div class="search-box">
-        <label>From Date</label>
-        <input type="date" id="fromDate">
-    </div>
-
-    <div class="search-box">
-        <label>To Date</label>
-        <input type="date" id="toDate">
-    </div>
 
     <button
     class="search-btn"
