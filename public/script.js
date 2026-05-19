@@ -37,7 +37,7 @@ const branchData = {
             { name: "Issue of Dependent I-card", counter: 4 },
 
             { name: "Pension & PPO related Job", counter: 5 },
-            { name: "Processing of Grants (KSB/WB/Army/Navy/AF)", counter: 5 },
+            { name: "Processing of Grants (CEG) - (KSB/WB/Army/Navy/AF)", counter: 5 },
             { name: "Dependancy Certificate", counter: 5 },
 
             { name: "Grant-in-Aid WWII", counter: 6 },
