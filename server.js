@@ -16,32 +16,6 @@ app.use(express.urlencoded({
     limit: "20mb"
 }));
 
-app.use((req,res,next)=>{
-
-    const blockedRoutes = [
-
-        "/admin-dashboard.html",
-        "/admin-login.html"
-
-    ];
-
-    if(
-
-        blockedRoutes.includes(
-            req.path
-        )
-
-    ){
-
-        return res
-        .status(403)
-        .send(
-            "Access Denied"
-        );
-    }
-
-    next();
-});
 
 app.use(
     express.static(
@@ -67,17 +41,94 @@ app.get("/", (req, res) => {
 
 });
 
-app.get("/admin", (req, res) => {
+/* ================================
+   🔐 ADMIN ROUTE
+================================ */
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "admin.html"
-        )
-    );
+app.get(
+    "/admin",
+    (req,res)=>{
 
-});
+        if(
+            req.session.admin
+        ){
+
+            return res.sendFile(
+
+                path.join(
+                    __dirname,
+                    "public",
+                    "admin-dashboard.html"
+                )
+
+            );
+        }
+
+        return res.sendFile(
+
+            path.join(
+                __dirname,
+                "public",
+                "admin-login.html"
+            )
+
+        );
+    }
+);
+
+// BLOCK DIRECT DASHBOARD ACCESS
+
+app.get(
+    "/admin-dashboard.html",
+    (req,res)=>{
+
+        if(
+            !req.session.admin
+        ){
+
+            return res.redirect(
+                "/admin"
+            );
+        }
+
+        res.sendFile(
+
+            path.join(
+                __dirname,
+                "public",
+                "admin-dashboard.html"
+            )
+
+        );
+    }
+);
+
+// LOGIN PAGE PROTECTION
+
+app.get(
+    "/admin-login.html",
+    (req,res)=>{
+
+        if(
+            req.session.admin
+        ){
+
+            return res.redirect(
+                "/admin"
+            );
+        }
+
+        res.sendFile(
+
+            path.join(
+                __dirname,
+                "public",
+                "admin-login.html"
+            )
+
+        );
+    }
+);
 
 const http = require("http");
 const { Server } = require("socket.io");
