@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login – ZSB VMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a1628 0%, #0d2359 50%, #0a1628 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* ── HEADER CARD ── */
+        .header-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px 20px 0 0;
+            padding: 24px 32px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-card img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .header-card .titles h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        .header-card .titles p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3px;
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 20px 20px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0a1628;
+            margin-bottom: 6px;
+        }
+
+        .form-card .subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 28px;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-family: "Poppins", sans-serif;
+            font-size: 14px;
+            color: #111;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: #0d2359;
+            background: #fff;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: #0d2359;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: "Poppins", sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            background: #163080;
+            transform: scale(1.01);
+        }
+
+        .login-btn:active {
+            transform: scale(0.99);
+        }
+
+        .error-msg {
+            color: #c0392b;
+            font-size: 12px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 20px;
+        }
+
+        /* ── SUCCESS OVERLAY ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .overlay-box {
+            background: white;
+            border-radius: 20px;
+            padding: 36px 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 340px;
+            width: 90%;
+        }
+
+        .checkmark {
+            width: 64px;
+            height: 64px;
+            background: #e8f5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 32px;
+        }
+
+        .overlay-box h2 {
+            font-size: 20px;
+            color: #111;
+            margin-bottom: 8px;
+        }
+
+        .overlay-box p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .countdown-bar-wrap {
+            width: 100%;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .countdown-bar {
+            height: 100%;
+            background: #28a745;
+            border-radius: 2px;
+            width: 100%;
+            animation: shrink 3s linear forwards;
+        }
+
+        @keyframes shrink {
+            from {
+                width: 100%;
+            }
+
+            to {
+                width: 0%;
+            }
+        }
+
+        /* ── SESSION EXPIRED OVERLAY ── */
+        #expiredOverlay .checkmark {
+            background: #fdecea;
+        }
+    </style>
+</head>
+<script>
+
+    window.history.pushState(
+        null,
+        "",
+        window.location.href
+    );
+
+    window.onpopstate =
+        function () {
+
+            window.history.pushState(
+                null,
+                "",
+                window.location.href
+            );
+        };
+
+</script>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <div class="header-card">
+            <img src="logo.jpg" alt="ZSB Logo">
+            <div class="titles">
+                <h1>ZSB Visitor Management System</h1>
+                <p>Zila Sainik Board · North 24 Parganas</p>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <h2>Admin Login</h2>
+            <p class="subtitle">Restricted access. Authorised personnel only.</p>
+
+            <div class="field">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" autocomplete="current-password"
+                    onkeydown="if(event.key==='Enter') login()">
+            </div>
+
+            <button class="login-btn" onclick="login()">Login to Dashboard</button>
+
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+
+    </div>
+
+    <p class="footer-note">Session valid for 12 hours · Secured access</p>
+
+    <!-- Success Overlay -->
+    <div class="overlay" id="successOverlay" style="display:none">
+        <div class="overlay-box">
+            <div class="checkmark">✓</div>
+            <h2>Login Successful</h2>
+            <p>Redirecting to admin dashboard…</p>
+            <div class="countdown-bar-wrap">
+                <div class="countdown-bar" id="countdownBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Expired Overlay (shown if redirected here from expired session) -->
+    <div class="overlay" id="expiredOverlay" style="display:none">
+        <div class="overlay-box">
+            <div class="checkmark" id="expiredIcon" style="background:#fdecea;font-size:28px;">⏱</div>
+            <h2>Session Expired</h2>
+            <p>Your 12-hour admin session has ended. Please log in again.</p>
+            <button class="login-btn" style="margin-top:20px;"
+                onclick="document.getElementById('expiredOverlay').style.display='none'">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Show session-expired notice if redirected here with ?expired=1
+        if (new URLSearchParams(window.location.search).get("expired") === "1") {
+            document.getElementById("expiredOverlay").style.display = "flex";
+        }
+
+        async function login() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+            const errorMsg = document.getElementById("errorMsg");
+            errorMsg.textContent = "";
+
+            if (!username || !password) {
+                errorMsg.textContent = "Please enter username and password.";
+                return;
+            }
+
+            try {
+                const res = await fetch("/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById("successOverlay").style.display = "flex";
+                    setTimeout(() => {
+                        window.location.href = "/admin";
+                    }, 3000);
+                } else {
+                    errorMsg.textContent = data.message || "Invalid credentials.";
+                }
+
+            } catch (err) {
+                errorMsg.textContent = "Network error. Please try again.";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
