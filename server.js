@@ -16,8 +16,41 @@ app.use(express.urlencoded({
     limit: "20mb"
 }));
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use((req,res,next)=>{
 
+    const blockedRoutes = [
+
+        "/admin-dashboard.html",
+        "/admin-login.html"
+
+    ];
+
+    if(
+
+        blockedRoutes.includes(
+            req.path
+        )
+
+    ){
+
+        return res
+        .status(403)
+        .send(
+            "Access Denied"
+        );
+    }
+
+    next();
+});
+
+app.use(
+    express.static(
+        path.join(
+            __dirname,
+            "public"
+        )
+    )
+);
 /* ================================
    🌐 ROUTES
 ================================ */
