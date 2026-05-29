@@ -1,3 +1,26 @@
+async function checkAuth() {
+
+    const res =
+        await fetch(
+            "/check-auth"
+        );
+
+    const data =
+        await res.json();
+
+    if (
+        !data.authenticated
+    ) {
+
+        window.location.href =
+            "/admin";
+
+        return false;
+    }
+
+    return true;
+}
+
 let socket;
 
 if (typeof io !== "undefined") {
@@ -28,33 +51,33 @@ function formatDate(dateStr) {
     return `${day}/${month}/${year}`;
 }
 
-function formatRegistration(dateStr){
+function formatRegistration(dateStr) {
 
-    if(!dateStr)
-    return "—";
+    if (!dateStr)
+        return "—";
 
     const d =
-    new Date(dateStr);
+        new Date(dateStr);
 
     const day =
-    String(
-        d.getDate()
-    ).padStart(2,"0");
+        String(
+            d.getDate()
+        ).padStart(2, "0");
 
     const month =
-    String(
-        d.getMonth()+1
-    ).padStart(2,"0");
+        String(
+            d.getMonth() + 1
+        ).padStart(2, "0");
 
     const hour =
-    String(
-        d.getHours()
-    ).padStart(2,"0");
+        String(
+            d.getHours()
+        ).padStart(2, "0");
 
     const minute =
-    String(
-        d.getMinutes()
-    ).padStart(2,"0");
+        String(
+            d.getMinutes()
+        ).padStart(2, "0");
 
     return `${day}/${month} ${hour}:${minute}`;
 }
@@ -360,18 +383,31 @@ function resetFilter() {
 }
 
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const exportBtn = document.getElementById("exportBtn");
-    const exportModal = document.getElementById("exportModal");
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-    exportBtn.addEventListener("click", () => {
-        exportModal.style.display = "flex";
+        const authenticated =
+            await checkAuth();
+
+        if (
+            !authenticated
+        ) return;
+
+        document.body.style.display =
+            "block";
+
+        const exportBtn = document.getElementById("exportBtn");
+        const exportModal = document.getElementById("exportModal");
+
+        exportBtn.addEventListener("click", () => {
+            exportModal.style.display = "flex";
+        });
+
+        await loadVisitors();
+
+        await loadCounters();
     });
-
-    await loadVisitors();
-
-    await loadCounters();
-});
 
 
 

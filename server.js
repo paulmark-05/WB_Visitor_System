@@ -6,7 +6,18 @@ const mongoose = require("mongoose");
 const ExcelJS = require("exceljs");
 const path = require("path");
 
+const session =
+    require("express-session");
+
+const MongoStore =
+    require("connect-mongo").default;
+
 const app = express();
+app.set(
+    "trust proxy", 
+    1
+);
+
 app.use(express.json({
     limit: "20mb"
 }));
@@ -15,6 +26,44 @@ app.use(express.urlencoded({
     extended: true,
     limit: "20mb"
 }));
+
+app.use(
+
+    session({
+
+        secret:
+        process.env
+        .SESSION_SECRET,
+
+        resave:false,
+
+        saveUninitialized:false,
+
+        store:
+        MongoStore.create({
+
+            mongoUrl:
+            process.env
+            .MONGO_URI
+
+        }),
+
+        cookie:{
+
+            maxAge:
+            12 * 60 * 60 * 1000,
+
+            httpOnly:true,
+
+            secure:
+            process.env
+            .NODE_ENV ===
+            "production",
+
+            sameSite:"lax"
+        }
+    })
+);
 
 
 app.use(
@@ -47,11 +96,11 @@ app.get("/", (req, res) => {
 
 app.get(
     "/admin",
-    (req,res)=>{
+    (req, res) => {
 
-        if(
+        if (
             req.session.admin
-        ){
+        ) {
 
             return res.sendFile(
 
@@ -80,11 +129,11 @@ app.get(
 
 app.get(
     "/admin-dashboard.html",
-    (req,res)=>{
+    (req, res) => {
 
-        if(
+        if (
             !req.session.admin
-        ){
+        ) {
 
             return res.redirect(
                 "/admin"
@@ -107,11 +156,11 @@ app.get(
 
 app.get(
     "/admin-login.html",
-    (req,res)=>{
+    (req, res) => {
 
-        if(
+        if (
             req.session.admin
-        ){
+        ) {
 
             return res.redirect(
                 "/admin"
@@ -412,13 +461,134 @@ app.post("/book", async (req, res) => {
     }
 });
 
+/* ================================
+   🔐 ADMIN AUTH
+================================ */
+
+function requireAuth(
+    req,
+    res,
+    next
+){
+
+    if(
+        req.session.admin
+    ){
+
+        return next();
+    }
+
+    return res
+    .status(401)
+    .json({
+
+        success:false,
+
+        message:
+        "Session expired"
+    });
+}
+
+
+// LOGIN
+
+app.post(
+    "/admin-login",
+    async (req,res)=>{
+
+        try{
+
+            const {
+                username,
+                password
+            } = req.body;
+
+            if(
+
+                username ===
+                process.env
+                .ADMIN_USERNAME &&
+
+                password ===
+                process.env
+                .ADMIN_PASSWORD
+
+            ){
+
+                req.session.admin =
+                true;
+
+                return res.json({
+
+                    success:true
+                });
+            }
+
+            return res
+            .status(401)
+            .json({
+
+                success:false,
+
+                message:
+                "Invalid username or password"
+            });
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            res.status(500)
+            .json({
+
+                success:false
+            });
+        }
+    }
+);
+
+
+// CHECK AUTH
+
+app.get(
+    "/check-auth",
+    (req,res)=>{
+
+        res.json({
+
+            authenticated:
+            !!req.session.admin
+        });
+    }
+);
+
+
+// LOGOUT
+
+app.post(
+    "/logout",
+    (req,res)=>{
+
+        req.session.destroy(
+            ()=>{
+
+                res.json({
+
+                    success:true
+                });
+            }
+        );
+    }
+);
 
 /* ================================
    🧑‍💼 ADMIN APIs
 ================================ */
 
 // GET ALL
-app.get("/admin/visitors", async (req, res) => {
+app.get("/admin/visitors", requireAuth, async (req, res) => {
 
     const { date } = req.query;
 
@@ -441,7 +611,7 @@ app.get("/admin/visitors", async (req, res) => {
 });
 
 // MARK COMPLETE
-app.post("/admin/complete/:id", async (req, res) => {
+app.post("/admin/complete/:id", requireAuth, async (req, res) => {
 
     const { status } = req.body;
 
@@ -453,7 +623,7 @@ app.post("/admin/complete/:id", async (req, res) => {
 });
 
 // EXPORT CSV
-app.get("/admin/export", async (req, res) => {
+app.get("/admin/export", requireAuth, async (req, res) => {
     const { from, to, fields } = req.query;
 
     let query = {};
@@ -691,7 +861,11 @@ app.get("/admin/export", async (req, res) => {
 //CLOSED COUNTERS
 let closedCounters = [];
 
-app.post("/admin/close-counter", (req, res) => {
+app.get("/admin/counters", requireAuth,(req, res) => {
+    res.json({ closedCounters });
+});
+
+app.post("/admin/close-counter", requireAuth, (req, res) => {
     const { counter } = req.body;
     if (!closedCounters.includes(counter)) {
         closedCounters.push(counter);
@@ -701,16 +875,13 @@ app.post("/admin/close-counter", (req, res) => {
     res.json({ closedCounters });
 });
 
-app.post("/admin/open-counter", (req, res) => {
+app.post("/admin/open-counter", requireAuth, (req, res) => {
     const { counter } = req.body;
     closedCounters = closedCounters.filter(c => c != counter);
     io.emit("counter-update");
     res.json({ closedCounters });
 });
 
-app.get("/admin/counters", (req, res) => {
-    res.json({ closedCounters });
-});
 
 /* ================================
    📧 SEND TOKEN EMAIL
@@ -790,14 +961,13 @@ app.post("/send-token-email", async (req, res) => {
 
                     <p>
                         <b>Date:</b>
-                        ${
-                        date
-                        ? date
-                            .split("-")
-                            .reverse()
-                            .join("-")
-                        : ""
-                        }
+                        ${date
+                    ? date
+                        .split("-")
+                        .reverse()
+                        .join("-")
+                    : ""
+                }
                     </p>
 
                     <p>
@@ -870,7 +1040,7 @@ app.post("/send-token-email", async (req, res) => {
    🚀 START SERVER
 ================================ */
 const PORT =
-process.env.PORT || 3000;
+    process.env.PORT || 3000;
 
 server.listen(PORT, () => {
 
