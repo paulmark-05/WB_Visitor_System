@@ -201,13 +201,7 @@ const nodemailer = require("nodemailer");
 const transporter =
     nodemailer.createTransport({
 
-        host: "smtp.gmail.com",
-
-        port: 587,
-
-        secure: false,
-
-        requireTLS: true,
+        service: "gmail",
 
         auth: {
 
@@ -220,20 +214,22 @@ const transporter =
                     .EMAIL_PASS
         },
 
+        pool: true,
 
-        tls: {
-            minVersion:
-                "TLSv1.2"
-        },
+        maxConnections: 1,
+
+        rateLimit: 5,
+
         connectionTimeout:
-            10000,
+            30000,
 
         greetingTimeout:
-            10000,
+            30000,
 
         socketTimeout:
-            10000
+            30000
     });
+
 
 transporter.verify(
 
@@ -243,22 +239,20 @@ transporter.verify(
 
             console.error(
 
-                "❌ SMTP ERROR:",
+                "❌ SMTP VERIFY ERROR:",
 
                 error
             );
-
         }
 
         else {
 
             console.log(
-                "✅ SMTP Ready"
+                "✅ SMTP READY"
             );
         }
     }
 );
-
 
 
 /* ================================
@@ -638,8 +632,7 @@ app.post("/book", async (req, res) => {
 
                     // SEND EMAIL 
                     const info =
-                        await Promise.race([
-                            transporter.sendMail({
+                        await transporter.sendMail({
 
                                 from:
                                     process.env
@@ -713,31 +706,14 @@ app.post("/book", async (req, res) => {
                 `,
 
                                 attachments
-                            }),
+                            });
 
-                            new Promise(
-
-                                (_,
-                                    reject) =>
-
-                                    setTimeout(
-
-                                        () => reject(
-
-                                            new Error(
-                                                "SMTP Timeout"
-                                            )
-                                        ),
-
-                                        10000
-                                    )
-                            )
-                        ]);
-
+                            
 
 
                     console.log(
-                        `✅ Email Sent: ${info.messageId}`
+                        "✅ Email Sent: ",
+                        info.messageId
                     );
 
                 }
