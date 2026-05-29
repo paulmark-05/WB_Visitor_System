@@ -1,4 +1,8 @@
 require("dotenv").config();
+
+const dns=require("dns");
+dns.setDefaultResultOrder("ipv4first");
+
 const { createCanvas, loadImage } = require("canvas");
 
 const express = require("express");
@@ -198,18 +202,12 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error("❌ MongoDB Error:", err));
 const nodemailer = require("nodemailer");
 
-const dns =
-    require("dns");
-
-dns.setDefaultResultOrder(
-    "ipv4first"
-);
 
 const transporter =
     nodemailer.createTransport({
 
         host:
-            "smtp.gmail.com",
+            "gmail-smtp-in.l.google.com",
 
         port:
             587,
@@ -231,10 +229,9 @@ const transporter =
                     .EMAIL_PASS
         },
 
-        family:
-            4,
-
         tls: {
+
+            family:4,
 
             rejectUnauthorized:
                 false
