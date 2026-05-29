@@ -198,10 +198,27 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error("❌ MongoDB Error:", err));
 const nodemailer = require("nodemailer");
 
+const dns =
+    require("dns");
+
+dns.setDefaultResultOrder(
+    "ipv4first"
+);
+
 const transporter =
     nodemailer.createTransport({
 
-        service: "gmail",
+        host:
+            "smtp.gmail.com",
+
+        port:
+            587,
+
+        secure:
+            false,
+
+        requireTLS:
+            true,
 
         auth: {
 
@@ -214,11 +231,14 @@ const transporter =
                     .EMAIL_PASS
         },
 
-        pool: true,
+        family:
+            4,
 
-        maxConnections: 1,
+        tls: {
 
-        rateLimit: 5,
+            rejectUnauthorized:
+                false
+        },
 
         connectionTimeout:
             30000,
@@ -634,17 +654,17 @@ app.post("/book", async (req, res) => {
                     const info =
                         await transporter.sendMail({
 
-                                from:
-                                    process.env
-                                        .EMAIL_USER,
+                            from:
+                                process.env
+                                    .EMAIL_USER,
 
-                                to:
-                                    email,
+                            to:
+                                email,
 
-                                subject:
-                                    "ZSB Visitor Appointment Token",
+                            subject:
+                                "ZSB Visitor Appointment Token",
 
-                                html: `
+                            html: `
 
                 <div style="
                 font-family:Arial;
@@ -674,10 +694,10 @@ app.post("/book", async (req, res) => {
 
                 <td>
                 ${date
-                                        .split("-")
-                                        .reverse()
-                                        .join("-")
-                                    }
+                                    .split("-")
+                                    .reverse()
+                                    .join("-")
+                                }
                 </td>
                 </tr>
 
@@ -705,10 +725,10 @@ app.post("/book", async (req, res) => {
                 </div>
                 `,
 
-                                attachments
-                            });
+                            attachments
+                        });
 
-                            
+
 
 
                     console.log(
