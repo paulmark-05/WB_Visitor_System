@@ -57,7 +57,24 @@ const branchData = {
 // ================== CLOSED COUNTERS ==================
 let closedCounters = [];
 async function fetchClosedCounters() {
-    const res = await fetch("/admin/counters");
+    const selectedDate =
+
+        document
+            .getElementById(
+                "datePicker"
+            )?.value ||
+
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    const res =
+        await fetch(
+
+            `/admin/counters?date=${selectedDate}`
+
+        );
+        
     const data = await res.json();
     closedCounters = data.closedCounters;
 }
@@ -130,7 +147,7 @@ function initCalendar() {
 
     const now =
         new Date();
-    
+
     const today =
         new Date();
 
@@ -300,7 +317,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-socket.on("counter-update", async () => {
-    await fetchClosedCounters();
-    populateDynamic();
-});
+socket.on(
+    "counter-update",
+    async () => {
+
+        await fetchClosedCounters();
+
+        populateDynamic();
+
+        console.log(
+            "Counter live updated"
+        );
+    }
+);
+
+document
+.getElementById(
+    "datePicker"
+)
+.addEventListener(
+    "change",
+    async ()=>{
+
+        await fetchClosedCounters();
+
+        populateDynamic();
+    }
+);

@@ -1,24 +1,35 @@
 async function checkAuth() {
 
-    const res =
-        await fetch(
-            "/check-auth"
-        );
+    try {
 
-    const data =
-        await res.json();
+        const res =
+            await fetch(
+                "/check-auth"
+            );
 
-    if (
-        !data.authenticated
-    ) {
+        const data =
+            await res.json();
+
+        if (
+            !data.authenticated
+        ) {
+
+            window.location.href =
+                "/admin-login.html";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    catch (err) {
 
         window.location.href =
-            "/admin";
+            "/admin-login.html";
 
         return false;
     }
-
-    return true;
 }
 
 let socket;
@@ -227,6 +238,8 @@ async function toggleStatus(
             },
 
             body: JSON.stringify({
+                counter,
+                date: document.getElementById("dateFilter").value,
                 status: newStatus
             })
         }
@@ -271,18 +284,21 @@ async function toggleStatus(
 // ================= COUNTERS =================
 async function loadCounters() {
 
-    const selectedDate =
-
+    const dateInput =
         document
             .getElementById(
                 "dateFilter"
-            )
-            .value ||
+            );
 
-        new Date()
-            .toISOString()
-            .split("T")[0];
+    const selectedDate =
 
+        dateInput?.value?.trim()
+
+            ? dateInput.value
+
+            : new Date()
+                .toISOString()
+                .split("T")[0];
     const res =
 
         await fetch(
@@ -371,17 +387,21 @@ async function toggleCounter(
     isOpen
 ) {
 
-    const selectedDate =
-
+    const dateInput =
         document
             .getElementById(
                 "dateFilter"
-            )
-            .value ||
+            );
 
-        new Date()
-            .toISOString()
-            .split("T")[0];
+    const selectedDate =
+
+        dateInput?.value?.trim()
+
+            ? dateInput.value
+
+            : new Date()
+                .toISOString()
+                .split("T")[0];
 
     const url =
 
@@ -409,8 +429,7 @@ async function toggleCounter(
 
                     counter,
 
-                    date:
-                        selectedDate
+                    date: selectedDate
                 })
         }
     );
@@ -612,3 +631,26 @@ function closeExportModal() {
     exportModal.style.display = "none";
 }
 
+// ================= LOGOUT =================
+
+async function logout() {
+
+    const confirmLogout =
+        confirm(
+            "Logout from admin panel?"
+        );
+
+    if (
+        !confirmLogout
+    ) return;
+
+    await fetch(
+        "/logout",
+        {
+            method: "POST"
+        }
+    );
+
+    window.location.href =
+        "/admin-login.html";
+}

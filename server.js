@@ -921,44 +921,42 @@ app.get("/admin/export", requireAuth, async (req, res) => {
 /* ================================
    🔒 PERSISTENT COUNTERS
 ================================ */
-
+/* ================================
+   🔒 CLOSED COUNTERS (DB)
+================================ */
 
 // GET COUNTERS
 
 app.get(
-
     "/admin/counters",
-
-    requireAuth,
-
     async (req,res)=>{
 
         const date =
-
         req.query.date ||
 
         new Date()
         .toISOString()
         .split("T")[0];
 
-        const settings =
+        let settings =
 
         await CounterSettings
-        .findOne({
+        .findOne({ date });
 
-            date
-        });
+        if(!settings){
+
+            settings = {
+
+                closedCounters:[]
+            };
+        }
 
         res.json({
 
             closedCounters:
-
-            settings
-            ?.closedCounters
-
-            || []
-
+            settings.closedCounters
         });
+
     }
 );
 
@@ -966,58 +964,59 @@ app.get(
 // CLOSE COUNTER
 
 app.post(
-
     "/admin/close-counter",
-
-    requireAuth,
-
     async (req,res)=>{
 
         const {
-
             counter,
             date
-
         } = req.body;
 
-        const settings =
+        let settings =
 
         await CounterSettings
-        .findOneAndUpdate(
+        .findOne({ date });
 
-            {
+        if(!settings){
 
-                date
-            },
+            settings =
+            new CounterSettings({
 
-            {
+                date,
 
-                $addToSet:{
+                closedCounters:[]
+            });
+        }
 
-                    closedCounters:
+        if(
 
-                    Number(counter)
-                }
-            },
+            !settings
+            .closedCounters
+            .includes(
 
-            {
+                Number(counter)
 
-                upsert:true,
+            )
 
-                new:true
-            }
-        );
+        ){
+
+            settings
+            .closedCounters
+            .push(
+
+                Number(counter)
+
+            );
+        }
+
+        await settings.save();
 
         io.emit(
             "counter-update"
         );
 
         res.json({
-
-            closedCounters:
-
-            settings
-            .closedCounters
+            success:true
         });
     }
 );
@@ -1026,62 +1025,44 @@ app.post(
 // OPEN COUNTER
 
 app.post(
-
     "/admin/open-counter",
-
-    requireAuth,
-
     async (req,res)=>{
 
         const {
-
             counter,
             date
-
         } = req.body;
 
-        const settings =
+        let settings =
 
         await CounterSettings
-        .findOneAndUpdate(
+        .findOne({ date });
 
-            {
+        if(settings){
 
-                date
-            },
+            settings.closedCounters =
 
-            {
+            settings.closedCounters
+            .filter(
 
-                $pull:{
+                c =>
+                c !==
+                Number(counter)
 
-                    closedCounters:
+            );
 
-                    Number(counter)
-                }
-            },
-
-            {
-
-                upsert:true,
-
-                new:true
-            }
-        );
+            await settings.save();
+        }
 
         io.emit(
             "counter-update"
         );
 
         res.json({
-
-            closedCounters:
-
-            settings
-            .closedCounters
+            success:true
         });
     }
 );
-
 /* ================================
    📧 SEND TOKEN EMAIL
 ================================ */
