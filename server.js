@@ -510,15 +510,6 @@ app.post("/book", async (req, res) => {
             success: true
         });
 
-        // SEND RESPONSE FIRST
-
-        res.json({
-
-            counter,
-            sequence,
-            timeSlot,
-            success: true
-        });
 
 
         // SEND EMAIL IN BACKGROUND
