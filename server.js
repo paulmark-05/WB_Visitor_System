@@ -500,7 +500,28 @@ app.post("/book", async (req, res) => {
 
         io.emit("new-booking");
 
-        // SEND EMAIL
+
+
+        // ✅ 6. Response
+        res.json({
+            counter,
+            sequence,
+            timeSlot,
+            success: true
+        });
+
+        // SEND RESPONSE FIRST
+
+        res.json({
+
+            counter,
+            sequence,
+            timeSlot,
+            success: true
+        });
+
+
+        // SEND EMAIL IN BACKGROUND
 
         if (email) {
 
@@ -612,13 +633,7 @@ app.post("/book", async (req, res) => {
             }
         }
 
-        // ✅ 6. Response
-        res.json({
-            counter,
-            sequence,
-            timeSlot,
-            success: true
-        });
+        return;
 
     } catch (err) {
 
