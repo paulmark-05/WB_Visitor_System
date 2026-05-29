@@ -198,13 +198,56 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error("❌ MongoDB Error:", err));
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+const transporter =
+    nodemailer.createTransport({
+
+        host: "smtp.gmail.com",
+
+        port: 465,
+
+        secure: true,
+
+        auth: {
+
+            user:
+                process.env
+                    .EMAIL_USER,
+
+            pass:
+                process.env
+                    .EMAIL_PASS
+        },
+
+        tls: {
+
+            rejectUnauthorized:
+                false
+        }
+    });
+
+transporter.verify(
+
+    (error) => {
+
+        if (error) {
+
+            console.error(
+
+                "❌ SMTP ERROR:",
+
+                error
+            );
+
+        }
+
+        else {
+
+            console.log(
+                "✅ SMTP Ready"
+            );
+        }
     }
-});
+);
 
 
 
@@ -583,21 +626,22 @@ app.post("/book", async (req, res) => {
                         );
                     }
 
-                    // SEND EMAIL EVEN IF IMAGE FAILS
+                    // SEND EMAIL 
+                    const info =
+                        await Promise.race([
+                            transporter.sendMail({
 
-                    await transporter.sendMail({
+                                from:
+                                    process.env
+                                        .EMAIL_USER,
 
-                        from:
-                            process.env
-                                .EMAIL_USER,
+                                to:
+                                    email,
 
-                        to:
-                            email,
+                                subject:
+                                    "ZSB Visitor Appointment Token",
 
-                        subject:
-                            "ZSB Visitor Appointment Token",
-
-                        html: `
+                                html: `
 
                 <div style="
                 font-family:Arial;
@@ -627,10 +671,10 @@ app.post("/book", async (req, res) => {
 
                 <td>
                 ${date
-                                .split("-")
-                                .reverse()
-                                .join("-")
-                            }
+                                        .split("-")
+                                        .reverse()
+                                        .join("-")
+                                    }
                 </td>
                 </tr>
 
@@ -658,11 +702,32 @@ app.post("/book", async (req, res) => {
                 </div>
                 `,
 
-                        attachments
-                    });
+                                attachments
+                            }),
+
+                            new Promise(
+
+                                (_,
+                                    reject) =>
+
+                                    setTimeout(
+
+                                        () => reject(
+
+                                            new Error(
+                                                "SMTP Timeout"
+                                            )
+                                        ),
+
+                                        10000
+                                    )
+                            )
+                        ]);
+
+
 
                     console.log(
-                        `✅ Email Sent to ${email}`
+                        `✅ Email Sent: ${info.messageId}`
                     );
 
                 }
