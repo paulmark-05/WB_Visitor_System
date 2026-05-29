@@ -182,20 +182,20 @@ function renderTable(data) {
             });
     });
 }
-function updateCounters() {
+function updateCounters(data=allData) {
 
     const total =
-        allData.length;
+        data.length;
 
     const completed =
-        allData.filter(
+        data.filter(
             v =>
                 v.status ===
                 "completed"
         ).length;
 
     const pending =
-        allData.filter(
+        data.filter(
             v =>
                 v.status !==
                 "completed"
@@ -238,8 +238,6 @@ async function toggleStatus(
             },
 
             body: JSON.stringify({
-                counter,
-                date: document.getElementById("dateFilter").value,
                 status: newStatus
             })
         }
@@ -278,7 +276,7 @@ async function toggleStatus(
         );
     }
 
-    updateCounters();
+    updateCounters(allData);
 }
 
 // ================= COUNTERS =================
@@ -483,7 +481,7 @@ function applyFilter() {
     }
 
     renderTable(filtered);
-    updateCounters();
+    updateCounters(filtered);
 }
 
 function resetFilter() {
@@ -503,7 +501,7 @@ function resetFilter() {
 
 
     renderTable(allData);
-    updateCounters();
+    updateCounters(allData);
 }
 
 

@@ -500,6 +500,117 @@ app.post("/book", async (req, res) => {
 
         io.emit("new-booking");
 
+        // SEND EMAIL
+
+        if (email) {
+
+            try {
+
+                const tokenImage =
+
+                    await generateTokenImage({
+
+                        rank,
+                        name,
+                        serviceNo,
+
+                        counter,
+                        sequence,
+
+                        branch,
+
+                        date,
+
+                        timeSlot
+                    });
+
+                await transporter.sendMail({
+
+                    from:
+                        process.env
+                            .EMAIL_USER,
+
+                    to:
+                        email,
+
+                    subject:
+                        "ZSB Visitor Appointment Token",
+
+                    html: `
+
+            <h2>
+            ZSB Visitor Appointment
+            </h2>
+
+            <p>
+
+            Your appointment
+            has been booked.
+
+            </p>
+
+            <p>
+
+            <b>Date:</b>
+            ${date
+                            .split("-")
+                            .reverse()
+                            .join("-")
+                        }
+
+            </p>
+
+            <p>
+
+            <b>Counter:</b>
+            C${counter}
+
+            </p>
+
+            <p>
+
+            <b>Token:</b>
+            T${sequence}
+
+            </p>
+
+            <p>
+
+            <b>Time Slot:</b>
+            ${timeSlot}
+
+            </p>
+            `,
+
+                    attachments: [
+
+                        {
+
+                            filename:
+                                "token.png",
+
+                            content:
+                                tokenImage
+                        }
+                    ]
+                });
+
+                console.log(
+                    "✅ Email Sent"
+                );
+
+            }
+
+            catch (err) {
+
+                console.error(
+
+                    "❌ Email Error:",
+
+                    err
+                );
+            }
+        }
 
         // ✅ 6. Response
         res.json({
@@ -929,32 +1040,32 @@ app.get("/admin/export", requireAuth, async (req, res) => {
 
 app.get(
     "/admin/counters",
-    async (req,res)=>{
+    async (req, res) => {
 
         const date =
-        req.query.date ||
+            req.query.date ||
 
-        new Date()
-        .toISOString()
-        .split("T")[0];
+            new Date()
+                .toISOString()
+                .split("T")[0];
 
         let settings =
 
-        await CounterSettings
-        .findOne({ date });
+            await CounterSettings
+                .findOne({ date });
 
-        if(!settings){
+        if (!settings) {
 
             settings = {
 
-                closedCounters:[]
+                closedCounters: []
             };
         }
 
         res.json({
 
             closedCounters:
-            settings.closedCounters
+                settings.closedCounters
         });
 
     }
@@ -965,7 +1076,7 @@ app.get(
 
 app.post(
     "/admin/close-counter",
-    async (req,res)=>{
+    async (req, res) => {
 
         const {
             counter,
@@ -974,39 +1085,39 @@ app.post(
 
         let settings =
 
-        await CounterSettings
-        .findOne({ date });
+            await CounterSettings
+                .findOne({ date });
 
-        if(!settings){
+        if (!settings) {
 
             settings =
-            new CounterSettings({
+                new CounterSettings({
 
-                date,
+                    date,
 
-                closedCounters:[]
-            });
+                    closedCounters: []
+                });
         }
 
-        if(
+        if (
 
             !settings
-            .closedCounters
-            .includes(
+                .closedCounters
+                .includes(
 
-                Number(counter)
+                    Number(counter)
 
-            )
+                )
 
-        ){
+        ) {
 
             settings
-            .closedCounters
-            .push(
+                .closedCounters
+                .push(
 
-                Number(counter)
+                    Number(counter)
 
-            );
+                );
         }
 
         await settings.save();
@@ -1016,7 +1127,7 @@ app.post(
         );
 
         res.json({
-            success:true
+            success: true
         });
     }
 );
@@ -1026,7 +1137,7 @@ app.post(
 
 app.post(
     "/admin/open-counter",
-    async (req,res)=>{
+    async (req, res) => {
 
         const {
             counter,
@@ -1035,21 +1146,21 @@ app.post(
 
         let settings =
 
-        await CounterSettings
-        .findOne({ date });
+            await CounterSettings
+                .findOne({ date });
 
-        if(settings){
+        if (settings) {
 
             settings.closedCounters =
 
-            settings.closedCounters
-            .filter(
+                settings.closedCounters
+                    .filter(
 
-                c =>
-                c !==
-                Number(counter)
+                        c =>
+                            c !==
+                            Number(counter)
 
-            );
+                    );
 
             await settings.save();
         }
@@ -1059,7 +1170,7 @@ app.post(
         );
 
         res.json({
-            success:true
+            success: true
         });
     }
 );
