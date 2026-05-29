@@ -510,121 +510,174 @@ app.post("/book", async (req, res) => {
             success: true
         });
 
-
-
         // SEND EMAIL IN BACKGROUND
 
         if (email) {
 
-            try {
+            setImmediate(async () => {
 
-                const tokenImage =
+                try {
 
-                    await generateTokenImage({
+                    let attachments = [];
 
-                        rank,
-                        name,
-                        serviceNo,
+                    // TRY TOKEN IMAGE
+                    try {
 
-                        counter,
-                        sequence,
+                        const tokenImage =
 
-                        branch,
+                            await Promise.race([
 
-                        date,
+                                generateTokenImage({
 
-                        timeSlot
-                    });
+                                    rank,
+                                    name,
+                                    serviceNo,
 
-                await transporter.sendMail({
+                                    counter,
+                                    sequence,
 
-                    from:
-                        process.env
-                            .EMAIL_USER,
+                                    branch,
 
-                    to:
-                        email,
+                                    date,
 
-                    subject:
-                        "ZSB Visitor Appointment Token",
+                                    timeSlot
+                                }),
 
-                    html: `
+                                new Promise((_, reject) =>
 
-            <h2>
-            ZSB Visitor Appointment
-            </h2>
+                                    setTimeout(
 
-            <p>
+                                        () => reject(
+                                            new Error(
+                                                "Token image timeout"
+                                            )
+                                        ),
 
-            Your appointment
-            has been booked.
+                                        8000
+                                    )
+                                )
+                            ]);
 
-            </p>
-
-            <p>
-
-            <b>Date:</b>
-            ${date
-                            .split("-")
-                            .reverse()
-                            .join("-")
-                        }
-
-            </p>
-
-            <p>
-
-            <b>Counter:</b>
-            C${counter}
-
-            </p>
-
-            <p>
-
-            <b>Token:</b>
-            T${sequence}
-
-            </p>
-
-            <p>
-
-            <b>Time Slot:</b>
-            ${timeSlot}
-
-            </p>
-            `,
-
-                    attachments: [
-
-                        {
+                        attachments.push({
 
                             filename:
                                 "token.png",
 
                             content:
                                 tokenImage
-                        }
-                    ]
-                });
+                        });
 
-                console.log(
-                    "✅ Email Sent"
-                );
+                        console.log(
+                            "🖼 Token image generated"
+                        );
 
-            }
+                    }
 
-            catch (err) {
+                    catch (imgErr) {
 
-                console.error(
+                        console.error(
 
-                    "❌ Email Error:",
+                            "⚠ Token image failed:",
 
-                    err
-                );
-            }
+                            imgErr.message
+                        );
+                    }
+
+                    // SEND EMAIL EVEN IF IMAGE FAILS
+
+                    await transporter.sendMail({
+
+                        from:
+                            process.env
+                                .EMAIL_USER,
+
+                        to:
+                            email,
+
+                        subject:
+                            "ZSB Visitor Appointment Token",
+
+                        html: `
+
+                <div style="
+                font-family:Arial;
+                padding:20px;
+                ">
+
+                <h2>
+                ZSB Visitor Appointment
+                </h2>
+
+                <p>
+                Your token has been successfully generated.
+                </p>
+
+                <table style="
+                border-collapse:collapse;
+                width:100%;
+                ">
+
+                <tr>
+                <td><b>Name</b></td>
+                <td>${name}</td>
+                </tr>
+
+                <tr>
+                <td><b>Date</b></td>
+
+                <td>
+                ${date
+                                .split("-")
+                                .reverse()
+                                .join("-")
+                            }
+                </td>
+                </tr>
+
+                <tr>
+                <td><b>Counter</b></td>
+                <td>C${counter}</td>
+                </tr>
+
+                <tr>
+                <td><b>Token</b></td>
+                <td>T${sequence}</td>
+                </tr>
+
+                <tr>
+                <td><b>Time Slot</b></td>
+                <td>${timeSlot}</td>
+                </tr>
+
+                </table>
+
+                <p>
+                Please report on time.
+                </p>
+
+                </div>
+                `,
+
+                        attachments
+                    });
+
+                    console.log(
+                        `✅ Email Sent to ${email}`
+                    );
+
+                }
+
+                catch (err) {
+
+                    console.error(
+
+                        "❌ Email Error:",
+
+                        err.message
+                    );
+                }
+            });
         }
-
-        return;
 
     } catch (err) {
 
