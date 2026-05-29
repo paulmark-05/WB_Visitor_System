@@ -14,7 +14,7 @@ const MongoStore =
 
 const app = express();
 app.set(
-    "trust proxy", 
+    "trust proxy",
     1
 );
 
@@ -32,35 +32,35 @@ app.use(
     session({
 
         secret:
-        process.env
-        .SESSION_SECRET,
+            process.env
+                .SESSION_SECRET,
 
-        resave:false,
+        resave: false,
 
-        saveUninitialized:false,
+        saveUninitialized: false,
 
         store:
-        MongoStore.create({
+            MongoStore.create({
 
-            mongoUrl:
-            process.env
-            .MONGO_URI
+                mongoUrl:
+                    process.env
+                        .MONGO_URI
 
-        }),
+            }),
 
-        cookie:{
+        cookie: {
 
             maxAge:
-            12 * 60 * 60 * 1000,
+                12 * 60 * 60 * 1000,
 
-            httpOnly:true,
+            httpOnly: true,
 
             secure:
-            process.env
-            .NODE_ENV ===
-            "production",
+                process.env
+                    .NODE_ENV ===
+                "production",
 
-            sameSite:"lax"
+            sameSite: "lax"
         }
     })
 );
@@ -261,6 +261,34 @@ visitorSchema.index(
 
 const Visitor = mongoose.model("Visitor", visitorSchema);
 
+/* ================================
+   🧠 COUNTER SETTINGS SCHEMA
+================================ */
+
+const counterSettingsSchema =
+    new mongoose.Schema({
+
+        date: {
+            type: String,
+            required: true,
+            unique: true
+        },
+
+        closedCounters: {
+            type: [Number],
+            default: []
+        }
+
+    });
+
+const CounterSettings =
+    mongoose.model(
+
+        "CounterSettings",
+
+        counterSettingsSchema
+    );
+
 const fs = require("fs");
 
 async function generateTokenImage(data) {
@@ -367,6 +395,38 @@ app.post("/book", async (req, res) => {
 
         // normalize date (VERY IMPORTANT)
         const date = new Date(req.body.date).toISOString().split("T")[0];
+        // CHECK IF COUNTER CLOSED
+
+        const settings =
+
+            await CounterSettings
+                .findOne({
+
+                    date
+                });
+
+        if (
+
+            settings
+                ?.closedCounters
+                ?.includes(
+
+                    Number(counter)
+
+                )
+
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    message:
+                        "Selected counter is closed"
+
+                });
+        }
+
 
         // ✅ Duplicate check
         const exists =
@@ -469,24 +529,24 @@ function requireAuth(
     req,
     res,
     next
-){
+) {
 
-    if(
+    if (
         req.session.admin
-    ){
+    ) {
 
         return next();
     }
 
     return res
-    .status(401)
-    .json({
+        .status(401)
+        .json({
 
-        success:false,
+            success: false,
 
-        message:
-        "Session expired"
-    });
+            message:
+                "Session expired"
+        });
 }
 
 
@@ -494,57 +554,57 @@ function requireAuth(
 
 app.post(
     "/admin-login",
-    async (req,res)=>{
+    async (req, res) => {
 
-        try{
+        try {
 
             const {
                 username,
                 password
             } = req.body;
 
-            if(
+            if (
 
                 username ===
                 process.env
-                .ADMIN_USERNAME &&
+                    .ADMIN_USERNAME &&
 
                 password ===
                 process.env
-                .ADMIN_PASSWORD
+                    .ADMIN_PASSWORD
 
-            ){
+            ) {
 
                 req.session.admin =
-                true;
+                    true;
 
                 return res.json({
 
-                    success:true
+                    success: true
                 });
             }
 
             return res
-            .status(401)
-            .json({
+                .status(401)
+                .json({
 
-                success:false,
+                    success: false,
 
-                message:
-                "Invalid username or password"
-            });
+                    message:
+                        "Invalid username or password"
+                });
 
         }
 
-        catch(err){
+        catch (err) {
 
             console.error(err);
 
             res.status(500)
-            .json({
+                .json({
 
-                success:false
-            });
+                    success: false
+                });
         }
     }
 );
@@ -554,12 +614,12 @@ app.post(
 
 app.get(
     "/check-auth",
-    (req,res)=>{
+    (req, res) => {
 
         res.json({
 
             authenticated:
-            !!req.session.admin
+                !!req.session.admin
         });
     }
 );
@@ -569,14 +629,14 @@ app.get(
 
 app.post(
     "/logout",
-    (req,res)=>{
+    (req, res) => {
 
         req.session.destroy(
-            ()=>{
+            () => {
 
                 res.json({
 
-                    success:true
+                    success: true
                 });
             }
         );
@@ -858,30 +918,169 @@ app.get("/admin/export", requireAuth, async (req, res) => {
     res.end();
 });
 
-//CLOSED COUNTERS
-let closedCounters = [];
+/* ================================
+   🔒 PERSISTENT COUNTERS
+================================ */
 
-app.get("/admin/counters", requireAuth,(req, res) => {
-    res.json({ closedCounters });
-});
 
-app.post("/admin/close-counter", requireAuth, (req, res) => {
-    const { counter } = req.body;
-    if (!closedCounters.includes(counter)) {
-        closedCounters.push(counter);
+// GET COUNTERS
+
+app.get(
+
+    "/admin/counters",
+
+    requireAuth,
+
+    async (req,res)=>{
+
+        const date =
+
+        req.query.date ||
+
+        new Date()
+        .toISOString()
+        .split("T")[0];
+
+        const settings =
+
+        await CounterSettings
+        .findOne({
+
+            date
+        });
+
+        res.json({
+
+            closedCounters:
+
+            settings
+            ?.closedCounters
+
+            || []
+
+        });
     }
+);
 
-    io.emit("counter-update");
-    res.json({ closedCounters });
-});
 
-app.post("/admin/open-counter", requireAuth, (req, res) => {
-    const { counter } = req.body;
-    closedCounters = closedCounters.filter(c => c != counter);
-    io.emit("counter-update");
-    res.json({ closedCounters });
-});
+// CLOSE COUNTER
 
+app.post(
+
+    "/admin/close-counter",
+
+    requireAuth,
+
+    async (req,res)=>{
+
+        const {
+
+            counter,
+            date
+
+        } = req.body;
+
+        const settings =
+
+        await CounterSettings
+        .findOneAndUpdate(
+
+            {
+
+                date
+            },
+
+            {
+
+                $addToSet:{
+
+                    closedCounters:
+
+                    Number(counter)
+                }
+            },
+
+            {
+
+                upsert:true,
+
+                new:true
+            }
+        );
+
+        io.emit(
+            "counter-update"
+        );
+
+        res.json({
+
+            closedCounters:
+
+            settings
+            .closedCounters
+        });
+    }
+);
+
+
+// OPEN COUNTER
+
+app.post(
+
+    "/admin/open-counter",
+
+    requireAuth,
+
+    async (req,res)=>{
+
+        const {
+
+            counter,
+            date
+
+        } = req.body;
+
+        const settings =
+
+        await CounterSettings
+        .findOneAndUpdate(
+
+            {
+
+                date
+            },
+
+            {
+
+                $pull:{
+
+                    closedCounters:
+
+                    Number(counter)
+                }
+            },
+
+            {
+
+                upsert:true,
+
+                new:true
+            }
+        );
+
+        io.emit(
+            "counter-update"
+        );
+
+        res.json({
+
+            closedCounters:
+
+            settings
+            .closedCounters
+        });
+    }
+);
 
 /* ================================
    📧 SEND TOKEN EMAIL

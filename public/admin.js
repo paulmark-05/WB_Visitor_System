@@ -85,6 +85,8 @@ function formatRegistration(dateStr) {
 
 let allData = [];
 
+
+
 // ================= LOAD =================
 async function loadVisitors() {
 
@@ -268,47 +270,150 @@ async function toggleStatus(
 
 // ================= COUNTERS =================
 async function loadCounters() {
-    console.log("Loading counters...");
 
-    const res = await fetch("/admin/counters");
-    const data = await res.json();
+    const selectedDate =
 
-    const panel = document.getElementById("counterPanel");
-    panel.innerHTML = "";
+        document
+            .getElementById(
+                "dateFilter"
+            )
+            .value ||
 
-    for (let i = 1; i <= 7; i++) {
+        new Date()
+            .toISOString()
+            .split("T")[0];
 
-        const isClosed = data.closedCounters.includes(i);
+    const res =
 
-        const div = document.createElement("div");
+        await fetch(
 
-        div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span>Counter ${i}</span>
+            `/admin/counters?date=${selectedDate}`
+        );
+
+    const data =
+        await res.json();
+
+    const panel =
+        document.getElementById(
+            "counterPanel"
+        );
+
+    panel.innerHTML =
+        "";
+
+    for (
+        let i = 1;
+        i <= 7;
+        i++
+    ) {
+
+        const isClosed =
+
+            data
+                .closedCounters
+                .includes(i);
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.innerHTML =
+            `
+        <div style="
+        display:flex;
+        align-items:center;
+        gap:8px;
+        ">
+
+            <span>
+            Counter ${i}
+            </span>
 
             <label class="switch">
-                <input type="checkbox" ${!isClosed ? "checked" : ""}
-                onchange="toggleCounter(${i}, this.checked)">
-                <span class="sliderToggle"></span>
+
+            <input
+            type="checkbox"
+
+            ${!isClosed
+                ? "checked"
+                : ""}
+
+            onchange=
+            "toggleCounter(
+            ${i},
+            this.checked
+            )">
+
+            <span class=
+            "sliderToggle">
+            </span>
+
             </label>
+
         </div>
         `;
 
-        div.style.color = isClosed ? "red" : "green";
+        div.style.color =
 
-        panel.appendChild(div);
+            isClosed
+                ? "red"
+                : "green";
+
+        panel.appendChild(
+            div
+        );
     }
 }
 
-async function toggleCounter(counter, isOpen) {
+async function toggleCounter(
+    counter,
+    isOpen
+) {
 
-    const url = isOpen ? "/admin/open-counter" : "/admin/close-counter";
+    const selectedDate =
 
-    await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ counter })
-    });
+        document
+            .getElementById(
+                "dateFilter"
+            )
+            .value ||
+
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    const url =
+
+        isOpen
+
+            ? "/admin/open-counter"
+
+            : "/admin/close-counter";
+
+    await fetch(
+
+        url,
+
+        {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:
+                JSON.stringify({
+
+                    counter,
+
+                    date:
+                        selectedDate
+                })
+        }
+    );
 
     loadCounters();
 }
@@ -404,9 +509,35 @@ document.addEventListener(
             exportModal.style.display = "flex";
         });
 
+        document
+            .getElementById(
+                "dateFilter"
+            )
+            .value =
+
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
         await loadVisitors();
 
         await loadCounters();
+
+        document
+            .getElementById(
+                "dateFilter"
+            )
+            .addEventListener(
+
+                "change",
+
+                async () => {
+
+                    await loadVisitors();
+
+                    await loadCounters();
+                }
+            );
     });
 
 
