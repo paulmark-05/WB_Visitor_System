@@ -203,9 +203,11 @@ const transporter =
 
         host: "smtp.gmail.com",
 
-        port: 465,
+        port: 587,
 
-        secure: true,
+        secure: false,
+
+        requireTLS: true,
 
         auth: {
 
@@ -218,11 +220,19 @@ const transporter =
                     .EMAIL_PASS
         },
 
-        tls: {
 
-            rejectUnauthorized:
-                false
-        }
+        tls: {
+            minVersion:
+                "TLSv1.2"
+        },
+        connectionTimeout:
+            10000,
+
+        greetingTimeout:
+            10000,
+
+        socketTimeout:
+            10000
     });
 
 transporter.verify(
