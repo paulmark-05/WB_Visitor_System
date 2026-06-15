@@ -44,7 +44,7 @@ const branchData = {
             { name: "Life certificate Penury", counter: 6 },
             { name: "AFFD Payment", counter: 6 },
 
-            { name: "Veer Pariwar Yojna", counter: 7 },
+            { name: "Veer Pariwar Yojna DLSA", counter: 7 },
             { name: "Job Sponsoring", counter: 7 },
             { name: "Family Dispute", counter: 7 },
             { name: "Grievance", counter: 7 },
