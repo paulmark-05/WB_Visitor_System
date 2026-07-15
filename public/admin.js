@@ -20,7 +20,7 @@ async function checkAuth() {
             return false;
         }
 
-        return true;
+        return data;
     }
 
     catch (err) {
@@ -182,7 +182,7 @@ function renderTable(data) {
             });
     });
 }
-function updateCounters(data=allData) {
+function updateCounters(data = allData) {
 
     const total =
         data.length;
@@ -509,12 +509,22 @@ document.addEventListener(
     "DOMContentLoaded",
     async () => {
 
-        const authenticated =
+        const session =
             await checkAuth();
 
-        if (
-            !authenticated
-        ) return;
+        if (!session)
+            return;
+
+        window.currentUser =
+            session.user;
+
+        if (window.currentUser.role === "counter") {
+
+            document
+                .getElementById("counterControlSection")
+                .style.display = "none";
+
+        }
 
         document.body.style.display =
             "block";

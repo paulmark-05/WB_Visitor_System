@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const dns=require("dns");
+const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
 const { createCanvas, loadImage } = require("canvas");
@@ -17,6 +17,12 @@ const MongoStore =
     require("connect-mongo").default;
 const AdminUser =
     require("./models/AdminUser");
+
+const requireSuperAdmin =
+    require("./middleware/requireSuperAdmin");
+
+const requireCounterOrSuper =
+    require("./middleware/requireCounterOrSuper");
 
 const app = express();
 app.set(
@@ -234,7 +240,7 @@ const transporter =
 
         tls: {
 
-            family:4,
+            family: 4,
 
             rejectUnauthorized:
                 false
@@ -942,6 +948,16 @@ app.get("/admin/visitors", requireAuth, async (req, res) => {
 
     let query = {};
 
+    if (
+        req.session.user.role === "counter"
+    ) {
+
+        query.counter =
+            req.session.user.assignedCounter;
+
+    }
+
+
     if (date) {
         query.date = date;
     }
@@ -963,18 +979,64 @@ app.post("/admin/complete/:id", requireAuth, async (req, res) => {
 
     const { status } = req.body;
 
-    await Visitor.findByIdAndUpdate(req.params.id, {
-        status
-    });
+    const visitor =
+        await Visitor.findById(
+            req.params.id
+        );
+
+    if (!visitor) {
+
+        return res
+            .status(404)
+            .json({
+                success: false
+            });
+
+    }
+
+    if (
+
+        req.session.user.role === "counter" &&
+
+        visitor.counter !==
+        req.session.user.assignedCounter
+
+    ) {
+
+        return res
+            .status(403)
+            .json({
+
+                success: false,
+
+                message:
+                    "Access denied"
+
+            });
+
+    }
+
+    visitor.status = status;
+
+    await visitor.save();
 
     res.json({ success: true });
 });
 
 // EXPORT CSV
-app.get("/admin/export", requireAuth, async (req, res) => {
+app.get("/admin/export", requireCounterOrSuper, async (req, res) => {
     const { from, to, fields } = req.query;
 
     let query = {};
+
+    if (
+        req.session.user.role === "counter"
+    ) {
+
+        query.counter =
+            req.session.user.assignedCounter;
+
+    }
 
     // DATE FILTER
     if (from && to) {
@@ -1253,6 +1315,7 @@ app.get(
 
 app.post(
     "/admin/close-counter",
+    requireSuperAdmin,
     async (req, res) => {
 
         const {
@@ -1314,6 +1377,7 @@ app.post(
 
 app.post(
     "/admin/open-counter",
+    requireSuperAdmin,
     async (req, res) => {
 
         const {
