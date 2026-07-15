@@ -105,7 +105,7 @@ app.get(
     (req, res) => {
 
         if (
-            req.session.admin
+            req.session.user
         ) {
 
             return res.sendFile(
@@ -138,7 +138,7 @@ app.get(
     (req, res) => {
 
         if (
-            !req.session.admin
+            !req.session.user
         ) {
 
             return res.redirect(
@@ -165,7 +165,7 @@ app.get(
     (req, res) => {
 
         if (
-            req.session.admin
+            req.session.user
         ) {
 
             return res.redirect(
@@ -766,115 +766,106 @@ app.post("/book", async (req, res) => {
    🔐 ADMIN AUTH
 ================================ */
 
-function requireAuth(
-    req,
-    res,
-    next
-) {
+function requireAuth(req, res, next) {
 
-    if (
-        req.session.admin
-    ) {
-
+    if (req.session.user) {
         return next();
     }
 
-    return res
-        .status(401)
-        .json({
+    return res.status(401).json({
+        success: false,
+        message: "Session expired"
+    });
 
-            success: false,
-
-            message:
-                "Session expired"
-        });
 }
 
 
 // LOGIN
-
 app.post(
     "/admin-login",
     async (req, res) => {
 
         try {
 
-            const {
-                username,
-                password
-            } = req.body;
+            const { username, password } = req.body;
 
-            const admin =
-
-                await AdminUser.findOne({
-
-                    username
-
-                });
+            const admin = await AdminUser.findOne({ username });
 
             if (!admin) {
 
-                return res
-                    .status(401)
-                    .json({
+                return res.status(401).json({
 
-                        success: false,
+                    success: false,
 
-                        message:
-                            "Invalid username or password"
-                    });
+                    message: "Invalid username or password"
+
+                });
+
+            }
+
+            if (!admin.active) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message: "Account disabled"
+
+                });
 
             }
 
             const validPassword =
-
                 await bcrypt.compare(
-
                     password,
-
                     admin.password
-
                 );
 
             if (!validPassword) {
 
-                return res
-                    .status(401)
-                    .json({
-
-                        success: false,
-
-                        message:
-                            "Invalid username or password"
-                    });
-
-            }
-
-            req.session.admin = true;
-
-            return res.json({
-
-                success: true
-            }); {
-
-                req.session.admin =
-                    true;
-
-                return res.json({
-
-                    success: true
-                });
-            }
-
-            return res
-                .status(401)
-                .json({
+                return res.status(401).json({
 
                     success: false,
 
-                    message:
-                        "Invalid username or password"
+                    message: "Invalid username or password"
+
                 });
+
+            }
+
+            admin.lastLogin = new Date();
+
+            await admin.save();
+
+            req.session.user = {
+
+                id: admin._id,
+
+                username: admin.username,
+
+                role: admin.role,
+
+                assignedCounter:
+                    admin.assignedCounter
+
+            };
+
+            return res.json({
+
+                success: true,
+
+                user: {
+
+                    username: admin.username,
+
+                    role: admin.role,
+
+                    assignedCounter:
+                        admin.assignedCounter
+
+                }
+
+            });
 
         }
 
@@ -882,15 +873,18 @@ app.post(
 
             console.error(err);
 
-            res.status(500)
-                .json({
+            return res.status(500).json({
 
-                    success: false
-                });
+                success: false,
+
+                message: "Internal server error"
+
+            });
+
         }
+
     }
 );
-
 
 // CHECK AUTH
 
@@ -898,14 +892,26 @@ app.get(
     "/check-auth",
     (req, res) => {
 
+        if (!req.session.user) {
+
+            return res.json({
+
+                authenticated: false
+
+            });
+
+        }
+
         res.json({
 
-            authenticated:
-                !!req.session.admin
+            authenticated: true,
+
+            user: req.session.user
+
         });
+
     }
 );
-
 
 // LOGOUT
 
