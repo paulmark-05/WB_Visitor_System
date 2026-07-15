@@ -15,6 +15,8 @@ const session =
 
 const MongoStore =
     require("connect-mongo").default;
+const AdminUser =
+    require("./models/AdminUser");
 
 const app = express();
 app.set(
@@ -201,6 +203,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Atlas Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
 const nodemailer = require("nodemailer");
+const bcrypt = require("bcrypt");
 
 
 const transporter =
@@ -801,17 +804,58 @@ app.post(
                 password
             } = req.body;
 
-            if (
+            const admin =
 
-                username ===
-                process.env
-                    .ADMIN_USERNAME &&
+                await AdminUser.findOne({
 
-                password ===
-                process.env
-                    .ADMIN_PASSWORD
+                    username
 
-            ) {
+                });
+
+            if (!admin) {
+
+                return res
+                    .status(401)
+                    .json({
+
+                        success: false,
+
+                        message:
+                            "Invalid username or password"
+                    });
+
+            }
+
+            const validPassword =
+
+                await bcrypt.compare(
+
+                    password,
+
+                    admin.password
+
+                );
+
+            if (!validPassword) {
+
+                return res
+                    .status(401)
+                    .json({
+
+                        success: false,
+
+                        message:
+                            "Invalid username or password"
+                    });
+
+            }
+
+            req.session.admin = true;
+
+            return res.json({
+
+                success: true
+            }); {
 
                 req.session.admin =
                     true;
