@@ -517,21 +517,29 @@ document.addEventListener(
 
         window.currentUser =
             session.user;
-
         if (window.currentUser.role === "counter") {
 
-            document.getElementById(
-                "userTab"
-            ).style.display = "none";
+            document
+                .getElementById(
+                    "adminNavigation")
+                .style.display = "none";
 
-            document.getElementById(
-                "assignedCounterCard"
-            ).style.display = "block";
+            document
+                .getElementById(
+                    "assignedCounterBar")
+                .style.display = "flex";
 
-            document.getElementById(
-                "assignedCounterNumber"
-            ).innerHTML =
+            document
+                .getElementById(
+                    "assignedCounterText")
+                .innerHTML =
+
                 `Counter ${window.currentUser.assignedCounter}`;
+
+            document
+                .getElementById(
+                    "counterControlSection")
+                .style.display = "none";
 
         }
 
@@ -570,7 +578,7 @@ document.addEventListener(
             userSection.style.display = "block";
 
         };
-        
+
         document.body.style.display =
             "block";
 

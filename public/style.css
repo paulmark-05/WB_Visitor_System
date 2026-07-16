@@ -816,105 +816,6 @@ Dashboard Header
 
 }
 
-/* =======================================================
-Assigned Counter
-======================================================= */
-
-.assigned-counter-card {
-
-    padding: 18px;
-
-    background: #eef5ff;
-
-    border-left: 5px solid #0057b8;
-
-    border-radius: 10px;
-
-    margin-bottom: 25px;
-
-}
-
-.assigned-title {
-
-    font-size: 14px;
-
-    color: #666;
-
-}
-
-.assigned-counter-number {
-
-    font-size: 26px;
-
-    font-weight: bold;
-
-    color: #0057b8;
-
-    margin-top: 8px;
-
-}
-
-/* =======================================================
-Navigation
-======================================================= */
-
-.dashboard-navigation {
-
-    display: flex;
-
-    justify-content: center;
-
-    gap: 25px;
-
-    margin: 30px 0;
-
-}
-
-.dashboard-pill {
-
-    flex: 1;
-
-    max-width: 320px;
-
-    min-height: 95px;
-
-}
-
-.dashboard-pill:hover {
-
-    border-color: #0057b8;
-
-    box-shadow: 0 5px 20px rgba(0, 0, 0, .08);
-
-}
-
-.dashboard-pill.active {
-
-    background: #0057b8;
-
-    color: white;
-
-    border-color: #0057b8;
-
-}
-
-.pill-title {
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    margin-bottom: 8px;
-
-}
-
-.pill-subtitle {
-
-    font-size: 14px;
-
-    opacity: .9;
-
-}
 
 /* =======================================================
 User Management
@@ -967,5 +868,157 @@ User Management
     font-weight: bold;
 
     cursor: pointer;
+
+}
+
+/* ==============================
+HEADER
+============================== */
+
+.dashboard-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.header-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+}
+
+.dashboard-logo {
+
+    width: 90px;
+
+    height: 90px;
+
+    object-fit: contain;
+
+}
+
+.dashboard-title {
+
+    margin: 0;
+
+    font-size: 36px;
+
+}
+
+.dashboard-subtitle {
+
+    margin-top: 6px;
+
+    color: #666;
+
+    font-size: 17px;
+
+}
+
+/* ==============================
+NAVIGATION
+============================== */
+
+.admin-navigation {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+
+}
+
+.nav-pill {
+
+    padding: 12px 34px;
+
+    border-radius: 40px;
+
+    border: 2px solid #d9d9d9;
+
+    background: white;
+
+    font-weight: 600;
+
+    font-size: 17px;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.nav-pill:hover {
+
+    border-color: #0057b8;
+
+    color: #0057b8;
+
+}
+
+.nav-pill.active {
+
+    background: #0057b8;
+
+    color: white;
+
+    border-color: #0057b8;
+
+}
+
+/* ==============================
+ASSIGNED COUNTER
+============================== */
+
+.assigned-counter-bar {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    color: #0057b8;
+
+}
+
+/* ==============================
+USER TOOLBAR
+============================== */
+
+.user-toolbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
+
+.user-toolbar input {
+
+    width: 350px;
 
 }
