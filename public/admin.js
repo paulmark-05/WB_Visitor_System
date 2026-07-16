@@ -520,12 +520,57 @@ document.addEventListener(
 
         if (window.currentUser.role === "counter") {
 
-            document
-                .getElementById("counterControlSection")
-                .style.display = "none";
+            document.getElementById(
+                "userTab"
+            ).style.display = "none";
+
+            document.getElementById(
+                "assignedCounterCard"
+            ).style.display = "block";
+
+            document.getElementById(
+                "assignedCounterNumber"
+            ).innerHTML =
+                `Counter ${window.currentUser.assignedCounter}`;
 
         }
 
+        const visitorTab =
+            document.getElementById("visitorTab");
+
+        const userTab =
+            document.getElementById("userTab");
+
+        const visitorSection =
+            document.getElementById("visitorSection");
+
+        const userSection =
+            document.getElementById("userSection");
+
+        visitorTab.onclick = () => {
+
+            visitorTab.classList.add("active");
+
+            userTab.classList.remove("active");
+
+            visitorSection.style.display = "block";
+
+            userSection.style.display = "none";
+
+        };
+
+        userTab.onclick = () => {
+
+            visitorTab.classList.remove("active");
+
+            userTab.classList.add("active");
+
+            visitorSection.style.display = "none";
+
+            userSection.style.display = "block";
+
+        };
+        
         document.body.style.display =
             "block";
 

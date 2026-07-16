@@ -10,86 +10,122 @@
 
     <div class="form-container">
         <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;justify-content:center;">
+            <div class="dashboard-header">
 
-            <img src="logo.jpg" style="width:100px;height:100px;object-fit:contain;">
+                <div class="header-left">
 
-            <div>
-                <h1 style="margin:0;">ZSB Visitor Management System</h1>
-                <p style="margin:0;color:#666;">Admin Dashboard</p>
-                <button onclick="logout()" style="
-position:absolute;
-top:25px;
-right:25px;
-background:#be2a1f;
-">
+                    <img src="logo.jpg" class="dashboard-logo">
 
-                    Logout
+                    <div>
 
-                </button>
-            </div>
+                        <h1>ZSB Visitor Management System</h1>
 
-        </div>
+                        <p class="dashboard-subtitle">
+                            Admin Dashboard
+                        </p>
 
-        <div id="assignedCounterBadge" class="assigned-counter" style="display:none;">
-
-            Assigned Counter :
-            <span id="assignedCounterText"></span>
-
-        </div>
-
-        <div class="dashboard-tabs">
-
-            <button id="visitorsTab" class="dashboard-tab active">
-
-                Visitors
-
-            </button>
-
-            <button id="usersTab" class="dashboard-tab">
-
-                User Management
-
-            </button>
-
-        </div>
-
-        <div id="visitorSection">
-            <div id="counterControlSection">
-                <h3>Counter Control</h3>
-                <div id="counterPanel"></div>
-            </div>
-
-            <div style="
-display:flex;
-align-items:center;
-gap:20px;
-flex-wrap:wrap;
-margin-bottom:20px;
-">
-
-                <div>
-                    <label>
-                        Select Date:
-                    </label>
-
-                    <input type="date" id="dateFilter" onchange="loadVisitors()">
-                </div>
-
-                <div style="
-    background:#f5f5f5;
-    padding:10px 16px;
-    border-radius:10px;
-    font-weight:bold;
-    ">
-
-                    Total:
-                    <span id="totalCount">
-                        0
-                    </span>
+                    </div>
 
                 </div>
 
+                <div class="header-right">
+
+                    <button onclick="logout()" class="logout-btn">
+
+                        Logout
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div id="assignedCounterCard" class="assigned-counter-card" style="display:none;">
+
+                <div class="assigned-title">
+
+                    Assigned Counter
+
+                </div>
+
+                <div id="assignedCounterNumber" class="assigned-counter-number">
+
+                </div>
+
+            </div>
+
+            <div id="dashboardNavigation" class="dashboard-navigation">
+
+                <div id="visitorTab" class="dashboard-pill active">
+
+                    <div class="pill-title">
+
+                        👥 Visitors
+
+                    </div>
+
+                    <div class="pill-subtitle">
+
+                        View visitor records
+
+                    </div>
+
+                </div>
+
+                <div id="userTab" class="dashboard-pill">
+
+                    <div class="pill-title">
+
+                        👤 User Management
+
+                    </div>
+
+                    <div class="pill-subtitle">
+
+                        Manage admin accounts
+
+                    </div>
+
+                </div>
+
+            </div>
+            <div id="visitorSection">
+                <div id="counterControlSection">
+                    <h3>Counter Control</h3>
+                    <div id="counterPanel"></div>
+                </div>
+
                 <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:20px;
+                    flex-wrap:wrap;
+                    margin-bottom:20px;
+                    ">
+
+                    <div>
+                        <label>
+                            Select Date:
+                        </label>
+
+                        <input type="date" id="dateFilter" onchange="loadVisitors()">
+                    </div>
+
+                    <div style="
+                        background:#f5f5f5;
+                        padding:10px 16px;
+                        border-radius:10px;
+                        font-weight:bold;
+                        ">
+
+                        Total:
+                        <span id="totalCount">
+                            0
+                        </span>
+
+                    </div>
+
+                    <div style="
     background:#e8f5e9;
     padding:10px 16px;
     border-radius:10px;
@@ -97,14 +133,14 @@ margin-bottom:20px;
     color:green;
     ">
 
-                    Completed:
-                    <span id="completedCount">
-                        0
-                    </span>
+                        Completed:
+                        <span id="completedCount">
+                            0
+                        </span>
 
-                </div>
+                    </div>
 
-                <div style="
+                    <div style="
     background:#ffe0e0;
     padding:10px 16px;
     border-radius:10px;
@@ -112,234 +148,241 @@ margin-bottom:20px;
     color:#d90606;
     ">
 
-                    Pending:
-                    <span id="pendingCount">
-                        0
-                    </span>
+                        Pending:
+                        <span id="pendingCount">
+                            0
+                        </span>
 
-                </div>
-
-            </div>
-
-            <div class="search-container">
-
-                <div class="search-box">
-                    <label>Search By</label>
-
-                    <select id="columnSelect">
-                        <option value="">
-                            Select Column
-                        </option>
-
-                        <option value="rank">
-                            Rank
-                        </option>
-
-                        <option value="name">
-                            Name
-                        </option>
-
-                        <option value="workType">
-                            Work
-                        </option>
-
-                        <option value="counter">
-                            Counter
-                        </option>
-
-                        <option value="status">
-                            Status
-                        </option>
-
-                        <option value="phone">
-                            Phone
-                        </option>
-
-                        <option value="subDivision">
-                            Sub Division
-                        </option>
-
-
-                    </select>
-                </div>
-
-                <div class="search-box">
-                    <label>Value</label>
-
-                    <select id="valueSelect">
-                        <option value="">
-                            Select Value
-                        </option>
-                    </select>
-                </div>
-
-
-                <button class="search-btn" onclick="applyFilter()">
-                    Search
-                </button>
-
-                <button class="search-btn" onclick="resetFilter()">
-                    Reset
-                </button>
-
-            </div>
-
-            <div class="table-wrapper">
-
-                <table id="visitorTable" border="1" width="100%">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Rank</th>
-                            <th>Name</th>
-                            <th>Work</th>
-                            <th>Counter / Token</th>
-                            <th>Status</th>
-                            <th>Subdivision</th>
-                            <th>ZSB ID</th>
-                            <th>Service No.</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-
-                        </tr>
-                    </thead>
-
-                    <tbody id="tableBody"></tbody>
-
-                </table>
-            </div>
-
-            <br>
-
-            <button id="exportBtn">Download Excel</button>
-
-            <div id="exportModal" class="export-modal">
-
-                <div class="export-card">
-
-                    <h2>Export Visitor Data</h2>
-
-                    <div class="export-row">
-                        <div>
-                            <label>From Date</label>
-                            <input type="date" id="fromDate">
-                        </div>
-
-                        <div>
-                            <label>To Date</label>
-                            <input type="date" id="toDate">
-                        </div>
                     </div>
 
-                    <h3>Select Fields</h3>
+                </div>
 
-                    <div class="field-grid">
+                <div class="search-container">
 
-                        <label><input type="checkbox" value="date" checked> Date</label>
+                    <div class="search-box">
+                        <label>Search By</label>
 
-                        <label><input type="checkbox" value="rank" checked> Rank</label>
-                        <label><input type="checkbox" value="name" checked> Name</label>
-                        <label><input type="checkbox" value="workType" checked> Work</label>
+                        <select id="columnSelect">
+                            <option value="">
+                                Select Column
+                            </option>
 
-                        <label><input type="checkbox" value="counter" checked> Counter</label>
-                        <label><input type="checkbox" value="sequence" checked> Token</label>
-                        <label><input type="checkbox" value="status" checked> Status</label>
+                            <option value="rank">
+                                Rank
+                            </option>
 
-                        <label><input type="checkbox" value="subDivision" checked> Sub Division</label>
+                            <option value="name">
+                                Name
+                            </option>
 
-                        <label><input type="checkbox" value="zsbId" checked> ZSB ID</label>
-                        <label><input type="checkbox" value="serviceNo" checked> Service No</label>
-                        <label><input type="checkbox" value="phone" checked> Phone</label>
-                        <label><input type="checkbox" value="email" checked> Email</label>
+                            <option value="workType">
+                                Work
+                            </option>
+
+                            <option value="counter">
+                                Counter
+                            </option>
+
+                            <option value="status">
+                                Status
+                            </option>
+
+                            <option value="phone">
+                                Phone
+                            </option>
+
+                            <option value="subDivision">
+                                Sub Division
+                            </option>
+
+
+                        </select>
+                    </div>
+
+                    <div class="search-box">
+                        <label>Value</label>
+
+                        <select id="valueSelect">
+                            <option value="">
+                                Select Value
+                            </option>
+                        </select>
+                    </div>
+
+
+                    <button class="search-btn" onclick="applyFilter()">
+                        Search
+                    </button>
+
+                    <button class="search-btn" onclick="resetFilter()">
+                        Reset
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table id="visitorTable" border="1" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Work</th>
+                                <th>Counter / Token</th>
+                                <th>Status</th>
+                                <th>Subdivision</th>
+                                <th>ZSB ID</th>
+                                <th>Service No.</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody id="tableBody"></tbody>
+
+                    </table>
+                </div>
+
+                <br>
+
+                <button id="exportBtn">Download Excel</button>
+
+                <div id="exportModal" class="export-modal">
+
+                    <div class="export-card">
+
+                        <h2>Export Visitor Data</h2>
+
+                        <div class="export-row">
+                            <div>
+                                <label>From Date</label>
+                                <input type="date" id="fromDate">
+                            </div>
+
+                            <div>
+                                <label>To Date</label>
+                                <input type="date" id="toDate">
+                            </div>
+                        </div>
+
+                        <h3>Select Fields</h3>
+
+                        <div class="field-grid">
+
+                            <label><input type="checkbox" value="date" checked> Date</label>
+
+                            <label><input type="checkbox" value="rank" checked> Rank</label>
+                            <label><input type="checkbox" value="name" checked> Name</label>
+                            <label><input type="checkbox" value="workType" checked> Work</label>
+
+                            <label><input type="checkbox" value="counter" checked> Counter</label>
+                            <label><input type="checkbox" value="sequence" checked> Token</label>
+                            <label><input type="checkbox" value="status" checked> Status</label>
+
+                            <label><input type="checkbox" value="subDivision" checked> Sub Division</label>
+
+                            <label><input type="checkbox" value="zsbId" checked> ZSB ID</label>
+                            <label><input type="checkbox" value="serviceNo" checked> Service No</label>
+                            <label><input type="checkbox" value="phone" checked> Phone</label>
+                            <label><input type="checkbox" value="email" checked> Email</label>
 
 
 
-                        <!-- 
+                            <!-- 
                     <label><input type="checkbox" value="timeSlot" checked> Time Slot</label>
 
                     <label><input type="checkbox" value="zsbBranch"> Branch</label>-->
+                        </div>
+
+                        <div class="export-actions">
+                            <button onclick="startExport()">Export Excel</button>
+                            <button onclick="closeExportModal()">Cancel</button>
+                        </div>
+
+                    </div>
+                </div>
+                <div id="toast" class="toast-notification">
+                    Excel downloaded successfully
+                </div>
+
+            </div>
+
+            <div id="userSection" style="display:none;">
+
+                <div class="user-header">
+
+                    <div>
+
+                        <h2>
+
+                            User Management
+
+                        </h2>
+
+                        <p>
+
+                            Create and manage administrator accounts
+
+                        </p>
+
                     </div>
 
-                    <div class="export-actions">
-                        <button onclick="startExport()">Export Excel</button>
-                        <button onclick="closeExportModal()">Cancel</button>
-                    </div>
+                    <button id="createUserBtn">
+
+                        + Create User
+
+                    </button>
 
                 </div>
+
+                <div class="user-toolbar">
+
+                    <input id="userSearch" placeholder="Search username...">
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table id="userTable">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Username</th>
+
+                                <th>Role</th>
+
+                                <th>Assigned Counter</th>
+
+                                <th>Status</th>
+
+                                <th>Last Login</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="userTableBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
             </div>
-            <div id="toast" class="toast-notification">
-                Excel downloaded successfully
-            </div>
+
+
 
         </div>
 
-
-        <div id="userSection" style="display:none;">
-
-            <div class="user-management-header">
-
-                <h2>
-
-                    User Management
-
-                </h2>
-
-                <button id="createUserBtn">
-
-                    + Create User
-
-                </button>
-
-            </div>
-
-            <div class="user-search">
-
-                <input id="userSearch" placeholder="Search users...">
-
-            </div>
-
-            <div class="table-wrapper">
-
-                <table id="userTable" border="1" width="100%">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Username</th>
-
-                            <th>Role</th>
-
-                            <th>Assigned Counter</th>
-
-                            <th>Status</th>
-
-                            <th>Last Login</th>
-
-                            <th>Actions</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="userTableBody">
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-        
-
-    </div>
-
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="admin.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="admin.js"></script>
 
 
 

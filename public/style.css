@@ -755,3 +755,223 @@ User Management
     background: #17498d;
 
 }
+
+/* =======================================================
+Dashboard Header
+======================================================= */
+
+.dashboard-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.header-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+}
+
+.dashboard-logo {
+
+    width: 90px;
+
+    height: 90px;
+
+    object-fit: contain;
+
+}
+
+.dashboard-subtitle {
+
+    color: #666;
+
+    margin-top: 4px;
+
+}
+
+.logout-btn {
+
+    background: #be2a1f;
+
+    color: white;
+
+    padding: 10px 20px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+}
+
+/* =======================================================
+Assigned Counter
+======================================================= */
+
+.assigned-counter-card {
+
+    padding: 18px;
+
+    background: #eef5ff;
+
+    border-left: 5px solid #0057b8;
+
+    border-radius: 10px;
+
+    margin-bottom: 25px;
+
+}
+
+.assigned-title {
+
+    font-size: 14px;
+
+    color: #666;
+
+}
+
+.assigned-counter-number {
+
+    font-size: 26px;
+
+    font-weight: bold;
+
+    color: #0057b8;
+
+    margin-top: 8px;
+
+}
+
+/* =======================================================
+Navigation
+======================================================= */
+
+.dashboard-navigation {
+
+    display: flex;
+
+    gap: 20px;
+
+    margin-bottom: 30px;
+
+}
+
+.dashboard-pill {
+
+    flex: 1;
+
+    background: white;
+
+    border: 2px solid #d9d9d9;
+
+    border-radius: 16px;
+
+    padding: 20px;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.dashboard-pill:hover {
+
+    border-color: #0057b8;
+
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .08);
+
+}
+
+.dashboard-pill.active {
+
+    background: #0057b8;
+
+    color: white;
+
+    border-color: #0057b8;
+
+}
+
+.pill-title {
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+
+}
+
+.pill-subtitle {
+
+    font-size: 14px;
+
+    opacity: .9;
+
+}
+
+/* =======================================================
+User Management
+======================================================= */
+
+.user-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.user-toolbar {
+
+    margin-bottom: 20px;
+
+}
+
+.user-toolbar input {
+
+    width: 350px;
+
+    padding: 12px;
+
+    font-size: 16px;
+
+    border-radius: 10px;
+
+    border: 1px solid #ccc;
+
+}
+
+#createUserBtn {
+
+    background: #0057b8;
+
+    color: white;
+
+    border: none;
+
+    padding: 12px 22px;
+
+    border-radius: 10px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
