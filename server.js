@@ -24,6 +24,9 @@ const requireSuperAdmin =
 const requireCounterOrSuper =
     require("./middleware/requireCounterOrSuper");
 
+const usersRoutes =
+    require("./routes/users");
+
 const app = express();
 app.set(
     "trust proxy",
@@ -86,6 +89,13 @@ app.use(
         )
     )
 );
+
+app.use(
+    "/admin",
+    usersRoutes
+);
+
+
 /* ================================
    🌐 ROUTES
 ================================ */

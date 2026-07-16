@@ -51,6 +51,7 @@ if (typeof io !== "undefined") {
     console.error("❌ Socket.IO not loaded");
 }
 
+let users = [];
 
 function formatDate(dateStr) {
 
@@ -109,6 +110,214 @@ async function loadVisitors() {
     populateFilterOptions();
     renderTable(allData);
     updateCounters();
+
+}
+
+async function loadUsers() {
+
+    try {
+
+        const response = await fetch("/admin/users", {
+            credentials: "same-origin"
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+
+            alert(result.message || "Unable to load users.");
+            return;
+        }
+
+        users = result.data;
+
+        renderUsers();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Unable to load users.");
+
+    }
+
+}
+
+function renderUsers() {
+
+    const tbody =
+        document.getElementById("usersTableBody");
+
+    tbody.innerHTML = "";
+
+    users.forEach(user => {
+
+        const row =
+            document.createElement("tr");
+
+        row.innerHTML = `
+
+            <td>${user.username}</td>
+
+            <td>
+                ${user.role === "superadmin"
+                ? "Super Admin"
+                : "Counter Admin"
+            }
+            </td>
+
+            <td>
+                ${user.assignedCounter
+                ? `Counter ${user.assignedCounter}`
+                : "-"
+            }
+            </td>
+
+            <td>
+
+                ${user.active
+
+                ? "<span class='status-active'>Active</span>"
+
+                : "<span class='status-disabled'>Disabled</span>"
+            }
+
+            </td>
+
+            <td>
+
+                ${user.lastLogin
+
+                ? new Date(
+                    user.lastLogin
+                ).toLocaleString()
+
+                : "-"
+
+            }
+
+            </td>
+
+            <td>
+
+                <button
+                    onclick="resetPassword('${user._id}')">
+
+                    Reset Password
+
+                </button>
+
+                ${user.role !== "superadmin"
+
+                ?
+
+                `<button
+                        onclick="toggleUserStatus('${user._id}', ${user.active})">
+
+                        ${user.active ? "Disable" : "Enable"}
+
+                    </button>`
+
+                :
+
+                ""
+
+            }
+
+            </td>
+
+        `;
+
+        tbody.appendChild(row);
+
+    });
+
+}
+
+async function createUser() {
+console.log("Create User clicked");
+    const username =
+        document
+            .getElementById(
+                "newUsername")
+            .value.trim();
+
+    const password =
+        document
+            .getElementById(
+                "newPassword")
+            .value;
+
+    const assignedCounter =
+        document
+            .getElementById(
+                "newCounter")
+            .value;
+
+    if (
+        !username ||
+        !password ||
+        !assignedCounter
+    ) {
+
+        alert(
+            "Please complete all fields."
+        );
+
+        return;
+
+    }
+
+    const saveBtn =
+        document.getElementById("saveUserBtn");
+
+    saveBtn.disabled = true;
+
+
+    const response =
+        await fetch(
+            "/admin/users",
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    username,
+
+                    password,
+
+                    role: "counter",
+
+                    assignedCounter
+
+                })
+
+            }
+
+        );
+
+    const result =
+        await response.json();
+
+    saveBtn.disabled = false;
+
+    if (!result.success) {
+
+        showToast(result.message);
+
+        return;
+
+    }
+
+    closeCreateUserModal();
+
+    await loadUsers();
+    showToast("User created successfully.");
 
 }
 
@@ -504,6 +713,38 @@ function resetFilter() {
     updateCounters(allData);
 }
 
+function closeCreateUserModal() {
+
+    document.getElementById(
+        "createUserModal"
+    ).style.display = "none";
+
+    document.getElementById(
+        "newUsername"
+    ).value = "";
+
+    document.getElementById(
+        "newPassword"
+    ).value = "";
+
+    document.getElementById(
+        "newCounter"
+    ).value = "";
+
+}
+
+window.addEventListener("click", function (event) {
+
+    const modal =
+        document.getElementById("createUserModal");
+
+    if (event.target === modal) {
+
+        closeCreateUserModal();
+
+    }
+
+});
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -519,6 +760,14 @@ document.addEventListener(
             session.user;
         if (window.currentUser.role === "counter") {
 
+            const createBtn =
+                document.getElementById("createUserBtn");
+
+            if (createBtn) {
+
+                createBtn.style.display = "none";
+
+            }
             document
                 .getElementById(
                     "adminNavigation")
@@ -547,37 +796,75 @@ document.addEventListener(
             document.getElementById("visitorTab");
 
         const userTab =
-            document.getElementById("userTab");
+            document.getElementById("userManagementTab");
 
         const visitorSection =
             document.getElementById("visitorSection");
 
         const userSection =
-            document.getElementById("userSection");
+            document.getElementById("userManagementDashboard");
 
-        visitorTab.onclick = () => {
+        if (
+            visitorTab &&
+            userTab &&
+            visitorSection &&
+            userSection
+        ) {
 
-            visitorTab.classList.add("active");
+            visitorTab.onclick = () => {
 
-            userTab.classList.remove("active");
+                visitorTab.classList.add("active");
+                userTab.classList.remove("active");
 
-            visitorSection.style.display = "block";
+                visitorSection.style.display = "block";
+                userSection.style.display = "none";
 
-            userSection.style.display = "none";
+            };
 
-        };
+            userTab.onclick = async () => {
 
-        userTab.onclick = () => {
+                userTab.classList.add("active");
+                visitorTab.classList.remove("active");
 
-            visitorTab.classList.remove("active");
+                visitorSection.style.display = "none";
+                userSection.style.display = "block";
 
-            userTab.classList.add("active");
+                await loadUsers();
 
-            visitorSection.style.display = "none";
+            };
 
-            userSection.style.display = "block";
+        }
 
-        };
+        document
+            .getElementById("createUserBtn")
+            .onclick = () => {
+
+                document
+                    .getElementById(
+                        "createUserModal")
+                    .style.display = "flex";
+
+            };
+
+        document
+            .getElementById(
+                "saveUserBtn")
+            .onclick = createUser;
+        
+          console.log("✅ saveUserBtn event attached");  
+
+        document
+            .getElementById("newPassword")
+            .addEventListener("keypress", function (e) {
+
+                if (e.key === "Enter") {
+
+                    createUser();
+
+                }
+
+            });
+
 
         document.body.style.display =
             "block";
@@ -690,6 +977,22 @@ async function startExport() {
 
 function closeExportModal() {
     exportModal.style.display = "none";
+}
+function showToast(message) {
+
+    const toast =
+        document.getElementById("toast");
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    }, 3000);
+
 }
 
 // ================= LOGOUT =================

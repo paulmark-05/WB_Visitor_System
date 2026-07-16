@@ -9,44 +9,41 @@
 <body style="display:none;">
 
     <div class="form-container">
-        <div class="dashboard-container">
-            <div class="dashboard-header">
 
-                <div class="header-left">
+        <div class="dashboard-header">
 
-                    <img src="logo.jpg" class="dashboard-logo">
+            <div class="header-left">
 
-                    <div>
-
-                        <h1 class="dashboard-title">
-
-                            ZSB Visitor Management System
-
-                        </h1>
-
-                        <p class="dashboard-subtitle">
-
-                            Admin Dashboard
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <button onclick="logout()" class="logout-btn">
-
-                    Logout
-
-                </button>
+                <img src="logo.jpg" class="dashboard-logo">
 
             </div>
 
+            <div class="header-center">
+
+                <h1 class="dashboard-title">
+                    ZSB Visitor Management System
+                </h1>
+
+                <p class="dashboard-subtitle">
+                    Admin Dashboard
+                </p>
+
+
+
+            </div>
+
+            <button onclick="logout()" class="logout-btn">
+
+                Logout
+
+            </button>
+
         </div>
+
 
         <div id="assignedCounterBar" class="assigned-counter-bar" style="display:none;">
 
-            Assigned Counter
+            Assigned Counter :
 
             <span id="assignedCounterText">
 
@@ -305,7 +302,7 @@
 
                 <input id="userSearch" placeholder="Search users">
 
-                <button id="createUser">
+                <button id="createUserBtn" class="primary-btn">
 
                     Create User
 
@@ -342,6 +339,68 @@
                     </tbody>
 
                 </table>
+
+            </div>
+
+            <div id="createUserModal" class="modal-overlay" style="display:none;">
+
+                <div class="modal-card">
+
+                    <h2>Create Counter Admin</h2>
+
+                    <div class="form-group">
+
+                        <label>Username</label>
+
+                        <input id="newUsername" type="text">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Password</label>
+
+                        <input id="newPassword" type="password">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Assigned Counter</label>
+
+                        <select id="newCounter">
+
+                            <option value="">Select Counter</option>
+
+                            <option value="1">Counter 1</option>
+                            <option value="2">Counter 2</option>
+                            <option value="3">Counter 3</option>
+                            <option value="4">Counter 4</option>
+                            <option value="5">Counter 5</option>
+                            <option value="6">Counter 6</option>
+                            <option value="7">Counter 7</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="modal-actions">
+
+                        <button id="saveUserBtn">
+
+                            Create User
+
+                        </button>
+
+                        <button onclick="closeCreateUserModal()">
+
+                            Cancel
+
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
 
