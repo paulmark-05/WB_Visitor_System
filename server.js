@@ -18,6 +18,9 @@ const MongoStore =
 const AdminUser =
     require("./models/AdminUser");
 
+const AuditLog =
+    require("./models/AuditLog");
+
 const requireSuperAdmin =
     require("./middleware/requireSuperAdmin");
 
@@ -226,7 +229,7 @@ const transporter =
     nodemailer.createTransport({
 
         host:
-            "gmail-smtp-in.l.google.com",
+            "smtp.gmail.com",
 
         port:
             587,
@@ -1031,6 +1034,113 @@ app.post("/admin/complete/:id", requireAuth, async (req, res) => {
     await visitor.save();
 
     res.json({ success: true });
+});
+
+// DELETE SINGLE VISITOR RECORD
+app.delete("/admin/visitors/:id", requireSuperAdmin, async (req, res) => {
+
+    try {
+
+        const visitor =
+            await Visitor.findById(
+                req.params.id
+            );
+
+        if (!visitor) {
+
+            return res
+                .status(404)
+                .json({
+                    success: false,
+                    message: "Visitor record not found."
+                });
+
+        }
+
+        await Visitor.findByIdAndDelete(req.params.id);
+
+        await AuditLog.create({
+
+            action: "delete_visitor",
+
+            performedBy:
+                req.session.user.username,
+
+            targetType: "Visitor",
+
+            targetId: req.params.id,
+
+            details:
+                `Deleted visitor "${visitor.name}" (date ${visitor.date}, counter ${visitor.counter})`
+
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Unable to delete visitor record."
+        });
+
+    }
+
+});
+
+// BULK DELETE VISITOR RECORDS BEFORE A DATE
+app.delete("/admin/visitors", requireSuperAdmin, async (req, res) => {
+
+    try {
+
+        const { before } = req.body;
+
+        if (!before) {
+
+            return res.status(400).json({
+                success: false,
+                message: "A cutoff date is required."
+            });
+
+        }
+
+        const result =
+            await Visitor.deleteMany({
+                date: { $lt: before }
+            });
+
+        await AuditLog.create({
+
+            action: "bulk_delete_visitors",
+
+            performedBy:
+                req.session.user.username,
+
+            targetType: "Visitor",
+
+            details:
+                `Deleted ${result.deletedCount} visitor record(s) before ${before}`
+
+        });
+
+        res.json({
+            success: true,
+            deletedCount: result.deletedCount
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Unable to delete visitor records."
+        });
+
+    }
+
 });
 
 // EXPORT CSV
