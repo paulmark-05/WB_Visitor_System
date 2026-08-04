@@ -223,66 +223,7 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error("❌ MongoDB Error:", err));
 const bcrypt = require("bcrypt");
 
-/* ================================
-   📧 EMAIL (Resend HTTP API)
-
-   Render blocks/times-out raw outbound
-   SMTP (ports 25/465/587), which is why
-   nodemailer kept failing here regardless
-   of host/port/IPv4 fixes. Resend sends
-   over normal HTTPS, so it isn't affected.
-================================ */
-
-const { Resend } = require("resend");
-
-const resend =
-    new Resend(process.env.RESEND_API_KEY);
-
-const EMAIL_FROM =
-    process.env.EMAIL_FROM ||
-    "onboarding@resend.dev";
-
-if (!process.env.RESEND_API_KEY) {
-
-    console.error(
-        "❌ RESEND_API_KEY is not set — token emails will fail."
-    );
-
-} else {
-
-    console.log(
-        "✅ Resend email client ready"
-    );
-}
-
-async function sendEmail({ to, subject, html, attachments }) {
-
-    const { data, error } =
-        await resend.emails.send({
-
-            from: EMAIL_FROM,
-
-            to,
-
-            subject,
-
-            html,
-
-            attachments
-        });
-
-    if (error) {
-
-        throw new Error(
-            error.message ||
-            "Resend API error"
-        );
-
-    }
-
-    return data;
-
-}
+const { sendEmail } = require("./services/email");
 
 
 /* ================================
@@ -1016,11 +957,111 @@ app.post("/admin/complete/:id", requireAuth, async (req, res) => {
 
     }
 
+    const wasAlreadyCompleted =
+        visitor.status === "completed";
+
     visitor.status = status;
 
     await visitor.save();
 
     res.json({ success: true });
+
+    // SEND "VISIT COMPLETED" EMAIL IN BACKGROUND
+    if (
+        status === "completed" &&
+        !wasAlreadyCompleted &&
+        visitor.email
+    ) {
+
+        setImmediate(async () => {
+
+            try {
+
+                await sendEmail({
+
+                    to: visitor.email,
+
+                    subject: "Your ZSB Visit — Work Completed",
+
+                    html: `
+                    <div style="
+                        font-family: Arial, sans-serif;
+                        max-width:600px;
+                        margin:auto;
+                        padding:20px;
+                        border:1px solid #ddd;
+                        border-radius:12px;
+                        background:#fafafa;
+                    ">
+
+                        <h2 style="
+                            text-align:center;
+                            color:#111;
+                            margin-bottom:20px;
+                        ">
+                            Thank You for Visiting ZSB
+                        </h2>
+
+                        <p>
+                            Dear ${visitor.name || "Visitor"},
+                        </p>
+
+                        <p>
+                            We hope your work/query has been addressed to your satisfaction during your visit to ${visitor.zsbBranch || "ZSB"}.
+                        </p>
+
+                        <p>
+                            If you have any feedback or grievance regarding your visit, please let us know using the link below:
+                        </p>
+
+                        <p style="text-align:center; margin:20px 0;">
+                            <a
+                                href="https://wb-sainik-board-feedback-form.onrender.com"
+                                style="
+                                    display:inline-block;
+                                    padding:10px 20px;
+                                    background:navy;
+                                    color:#fff;
+                                    text-decoration:none;
+                                    border-radius:6px;
+                                "
+                            >
+                                Share Feedback / Grievance
+                            </a>
+                        </p>
+
+                        <hr>
+
+                        <p style="
+                            font-size:12px;
+                            color:#666;
+                            text-align:center;
+                        ">
+                            ZSB Visitor Management System
+                        </p>
+
+                    </div>
+                    `
+
+                });
+
+                console.log(
+                    "✅ Completion email sent to",
+                    visitor.email
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "❌ Completion email failed:",
+                    err.message
+                );
+
+            }
+
+        });
+
+    }
 });
 
 // DELETE SINGLE VISITOR RECORD
