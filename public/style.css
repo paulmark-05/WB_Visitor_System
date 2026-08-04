@@ -152,11 +152,21 @@ table {
 
     border-collapse: collapse;
 
-    min-width: 1400px;
-
     width: max-content;
 
     margin: 0;
+}
+
+#visitorTable {
+
+    min-width: 1400px;
+
+}
+
+#usersTable {
+
+    width: 100%;
+
 }
 
 th {
@@ -286,20 +296,53 @@ tr:nth-child(even) {
 
 .toast-notification {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     background: #28a745;
     color: white;
-    padding: 12px 18px;
-    border-radius: 10px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-family: Poppins;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     opacity: 0;
-    transition: 0.3s;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(16px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
     z-index: 9999;
+    max-width: 360px;
 }
 
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 13px;
+}
 
 .toast-notification.show {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.toast-notification.toast-error {
+    background: #d90606;
+}
+
+.toast-notification.toast-info {
+    background: #0d2359;
 }
 
 #exportBtn {
@@ -1039,8 +1082,26 @@ font-weight:600;
 
 }
 
+.match-hint {
+    font-size: 12px;
+    margin-top: 6px;
+    min-height: 16px;
+}
+
+.match-hint.match-ok {
+    color: #1e7e34;
+}
+
+.match-hint.match-bad {
+    color: #c0392b;
+}
+
 .form-group input,
 .form-group select{
+
+box-sizing: border-box;
+
+width: 100%;
 
 padding:10px;
 

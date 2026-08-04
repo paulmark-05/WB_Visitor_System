@@ -971,6 +971,69 @@ app.post(
     }
 );
 
+// VERIFY OTP ONLY (does not consume it — the actual reset re-checks it)
+app.post(
+    "/verify-reset-otp",
+    async (req, res) => {
+
+        try {
+
+            const { username, otp } = req.body;
+
+            if (!username || !otp) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Username and OTP are required."
+                });
+
+            }
+
+            const user =
+                await AdminUser.findOne({ username });
+
+            if (
+                !user ||
+                !user.resetOtpHash ||
+                !user.resetOtpExpires ||
+                user.resetOtpExpires.getTime() < Date.now()
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            const otpValid =
+                await bcrypt.compare(otp, user.resetOtpHash);
+
+            if (!otpValid) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            return res.json({ success: true });
+
+        } catch (err) {
+
+            console.error("❌ Verify-OTP error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to verify OTP."
+            });
+
+        }
+
+    }
+);
+
 // VERIFY OTP + SET NEW PASSWORD
 app.post(
     "/reset-password-otp",
