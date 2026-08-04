@@ -251,9 +251,9 @@ const transporter =
                     .EMAIL_PASS
         },
 
-        tls: {
+        family: 4,
 
-            family: 4,
+        tls: {
 
             rejectUnauthorized:
                 false
@@ -1090,26 +1090,40 @@ app.delete("/admin/visitors/:id", requireSuperAdmin, async (req, res) => {
 
 });
 
-// BULK DELETE VISITOR RECORDS BEFORE A DATE
+// BULK DELETE VISITOR RECORDS — by selected IDs, or by an inclusive date range
 app.delete("/admin/visitors", requireSuperAdmin, async (req, res) => {
 
     try {
 
-        const { before } = req.body;
+        const { ids, from, to } = req.body;
 
-        if (!before) {
+        let query;
+
+        if (Array.isArray(ids) && ids.length > 0) {
+
+            query = { _id: { $in: ids } };
+
+        } else if (from && to) {
+
+            query = {
+                date: { $gte: from, $lte: to }
+            };
+
+        } else {
 
             return res.status(400).json({
                 success: false,
-                message: "A cutoff date is required."
+                message: "Provide either a list of record IDs or a From/To date range."
             });
 
         }
 
         const result =
-            await Visitor.deleteMany({
-                date: { $lt: before }
-            });
+            await Visitor.deleteMany(query);
+
+        const details =
+            `Deleted ${result.deletedCount} visitor record(s)` +
+            (from && to ? ` from ${from} to ${to} (inclusive)` : "");
 
         await AuditLog.create({
 
@@ -1120,8 +1134,7 @@ app.delete("/admin/visitors", requireSuperAdmin, async (req, res) => {
 
             targetType: "Visitor",
 
-            details:
-                `Deleted ${result.deletedCount} visitor record(s) before ${before}`
+            details
 
         });
 

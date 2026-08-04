@@ -206,6 +206,9 @@
                 <table id="visitorTable" border="1" width="100%">
                     <thead>
                         <tr>
+                            <th id="visitorSelectHeader" style="display:none;">
+                                <input type="checkbox" id="selectAllVisitors">
+                            </th>
                             <th>Date</th>
                             <th>Rank</th>
                             <th>Name</th>
@@ -242,16 +245,42 @@
                         flex-wrap:wrap;
                         ">
 
-                    <div>
-                        <label>Delete records before:</label>
-                        <input type="date" id="purgeBeforeDate">
-                    </div>
-
-                    <button id="purgeVisitorsBtn" class="danger-btn">
-                        Delete Records Before Date
+                    <button id="deleteSelectedBtn" class="danger-btn" disabled>
+                        Delete Selected (<span id="selectedCount">0</span>)
                     </button>
 
                 </div>
+
+                <p style="font-size:12px; color:#555; margin:6px 0 16px;">
+                    Tick the checkbox next to one or more visitor rows above, then click this button to permanently delete just those records from the database.
+                </p>
+
+                <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        flex-wrap:wrap;
+                        ">
+
+                    <div>
+                        <label>From:</label>
+                        <input type="date" id="purgeFromDate">
+                    </div>
+
+                    <div>
+                        <label>To:</label>
+                        <input type="date" id="purgeToDate">
+                    </div>
+
+                    <button id="purgeVisitorsBtn" class="danger-btn">
+                        Delete Records In Range
+                    </button>
+
+                </div>
+
+                <p style="font-size:12px; color:#555; margin-top:6px;">
+                    Deletes every visitor record dated between "From" and "To", including both the From and To dates themselves. This permanently removes them from the database and cannot be undone — use with care.
+                </p>
 
             </div>
 
