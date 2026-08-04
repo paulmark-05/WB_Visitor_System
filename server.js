@@ -225,6 +225,13 @@ const bcrypt = require("bcrypt");
 
 const { sendEmail } = require("./services/email");
 
+// Client asked to stop visitor-facing emails (token/completion) — the
+// sending Gmail inbox was filling up. The Gmail API module itself is left
+// intact for reuse elsewhere; this only turns off the two bulk emails.
+// The superadmin OTP password-reset email is unaffected — it's low-volume
+// and unrelated to the inbox issue, and is the only way to recover access.
+const VISITOR_EMAILS_ENABLED = false;
+
 
 /* ================================
    🧠 SCHEMA (UPGRADED)
@@ -530,7 +537,7 @@ app.post("/book", async (req, res) => {
 
         // SEND EMAIL IN BACKGROUND
 
-        if (email) {
+        if (email && VISITOR_EMAILS_ENABLED) {
 
             setImmediate(async () => {
 
@@ -1225,7 +1232,8 @@ app.post("/admin/complete/:id", requireAuth, async (req, res) => {
     if (
         status === "completed" &&
         !wasAlreadyCompleted &&
-        visitor.email
+        visitor.email &&
+        VISITOR_EMAILS_ENABLED
     ) {
 
         setImmediate(async () => {
@@ -1850,6 +1858,10 @@ app.post("/send-token-email", async (req, res) => {
         } = req.body;
 
         if (!email || !tokenImage) {
+            return res.json({ success: true });
+        }
+
+        if (!VISITOR_EMAILS_ENABLED) {
             return res.json({ success: true });
         }
 
