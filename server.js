@@ -895,21 +895,43 @@ app.post(
 
             const { username } = req.body;
 
-            const genericResponse = {
-                success: true,
-                message:
-                    "If that account has an email on file, an OTP has been sent to it."
-            };
-
             if (!username) {
-                return res.json(genericResponse);
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Enter your username."
+                });
+
             }
 
             const user =
                 await AdminUser.findOne({ username });
 
-            if (!user || !user.email) {
-                return res.json(genericResponse);
+            if (!user) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "No account found with that username."
+                });
+
+            }
+
+            if (user.role !== "superadmin") {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not authorised to reset this password. Please ask your superadmin."
+                });
+
+            }
+
+            if (!user.email) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "No email is on file for this account. Set one under Account Settings after logging in, or ask another superadmin to."
+                });
+
             }
 
             // Cooldown: block re-requesting for the first
@@ -955,7 +977,10 @@ app.post(
 
             });
 
-            return res.json(genericResponse);
+            return res.json({
+                success: true,
+                message: "An OTP has been sent to your email."
+            });
 
         } catch (err) {
 
