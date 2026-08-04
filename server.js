@@ -221,77 +221,9 @@ const io = new Server(server);
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Atlas Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
-const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 
-
-const transporter =
-    nodemailer.createTransport({
-
-        host:
-            "smtp.gmail.com",
-
-        port:
-            587,
-
-        secure:
-            false,
-
-        requireTLS:
-            true,
-
-        auth: {
-
-            user:
-                process.env
-                    .EMAIL_USER,
-
-            pass:
-                process.env
-                    .EMAIL_PASS
-        },
-
-        family: 4,
-
-        tls: {
-
-            rejectUnauthorized:
-                false
-        },
-
-        connectionTimeout:
-            30000,
-
-        greetingTimeout:
-            30000,
-
-        socketTimeout:
-            30000
-    });
-
-
-transporter.verify(
-
-    (error) => {
-
-        if (error) {
-
-            console.error(
-
-                "❌ SMTP VERIFY ERROR:",
-
-                error
-            );
-        }
-
-        else {
-
-            console.log(
-                "✅ SMTP READY"
-            );
-        }
-    }
-);
+const { sendEmail } = require("./services/email");
 
 
 /* ================================
@@ -669,13 +601,9 @@ app.post("/book", async (req, res) => {
                         );
                     }
 
-                    // SEND EMAIL 
+                    // SEND EMAIL
                     const info =
-                        await transporter.sendMail({
-
-                            from:
-                                process.env
-                                    .EMAIL_USER,
+                        await sendEmail({
 
                             to:
                                 email,
@@ -752,7 +680,7 @@ app.post("/book", async (req, res) => {
 
                     console.log(
                         "✅ Email Sent: ",
-                        info.messageId
+                        info?.id
                     );
 
                 }
@@ -951,6 +879,173 @@ app.post(
 );
 
 /* ================================
+   🔑 FORGOT PASSWORD (email OTP)
+================================ */
+
+const crypto = require("crypto");
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// REQUEST OTP
+app.post(
+    "/forgot-password",
+    async (req, res) => {
+
+        try {
+
+            const { username } = req.body;
+
+            const genericResponse = {
+                success: true,
+                message:
+                    "If that account has an email on file, an OTP has been sent to it."
+            };
+
+            if (!username) {
+                return res.json(genericResponse);
+            }
+
+            const user =
+                await AdminUser.findOne({ username });
+
+            if (!user || !user.email) {
+                return res.json(genericResponse);
+            }
+
+            // Cooldown: block re-requesting for the first
+            // minute after an OTP was already issued.
+            if (
+                user.resetOtpExpires &&
+                user.resetOtpExpires.getTime() - Date.now() >
+                    OTP_TTL_MS - 60 * 1000
+            ) {
+
+                return res.status(429).json({
+                    success: false,
+                    message: "Please wait a minute before requesting another OTP."
+                });
+
+            }
+
+            const otp =
+                crypto.randomInt(100000, 1000000).toString();
+
+            user.resetOtpHash =
+                await bcrypt.hash(otp, 10);
+
+            user.resetOtpExpires =
+                new Date(Date.now() + OTP_TTL_MS);
+
+            await user.save();
+
+            await sendEmail({
+
+                to: user.email,
+
+                subject: "ZSB Admin Password Reset OTP",
+
+                html: `
+                <div style="font-family:Arial,sans-serif; max-width:480px; margin:auto; padding:20px;">
+                    <h2>Password Reset OTP</h2>
+                    <p>Use the code below to reset the password for admin account <b>${user.username}</b>. This code expires in 10 minutes.</p>
+                    <p style="font-size:32px; font-weight:bold; letter-spacing:6px; text-align:center; margin:24px 0;">${otp}</p>
+                    <p>If you didn't request this, you can safely ignore this email.</p>
+                </div>
+                `
+
+            });
+
+            return res.json(genericResponse);
+
+        } catch (err) {
+
+            console.error("❌ Forgot-password error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to process request."
+            });
+
+        }
+
+    }
+);
+
+// VERIFY OTP + SET NEW PASSWORD
+app.post(
+    "/reset-password-otp",
+    async (req, res) => {
+
+        try {
+
+            const { username, otp, newPassword } = req.body;
+
+            if (!username || !otp || !newPassword) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Username, OTP and new password are required."
+                });
+
+            }
+
+            const user =
+                await AdminUser.findOne({ username });
+
+            if (
+                !user ||
+                !user.resetOtpHash ||
+                !user.resetOtpExpires ||
+                user.resetOtpExpires.getTime() < Date.now()
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            const otpValid =
+                await bcrypt.compare(otp, user.resetOtpHash);
+
+            if (!otpValid) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            user.password =
+                await bcrypt.hash(newPassword, 10);
+
+            user.resetOtpHash = null;
+            user.resetOtpExpires = null;
+
+            await user.save();
+
+            return res.json({
+                success: true,
+                message: "Password reset successfully."
+            });
+
+        } catch (err) {
+
+            console.error("❌ Reset-password error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to reset password."
+            });
+
+        }
+
+    }
+);
+
+/* ================================
    🧑‍💼 ADMIN APIs
 ================================ */
 
@@ -1029,11 +1124,111 @@ app.post("/admin/complete/:id", requireAuth, async (req, res) => {
 
     }
 
+    const wasAlreadyCompleted =
+        visitor.status === "completed";
+
     visitor.status = status;
 
     await visitor.save();
 
     res.json({ success: true });
+
+    // SEND "VISIT COMPLETED" EMAIL IN BACKGROUND
+    if (
+        status === "completed" &&
+        !wasAlreadyCompleted &&
+        visitor.email
+    ) {
+
+        setImmediate(async () => {
+
+            try {
+
+                await sendEmail({
+
+                    to: visitor.email,
+
+                    subject: "Your ZSB Visit — Work Completed",
+
+                    html: `
+                    <div style="
+                        font-family: Arial, sans-serif;
+                        max-width:600px;
+                        margin:auto;
+                        padding:20px;
+                        border:1px solid #ddd;
+                        border-radius:12px;
+                        background:#fafafa;
+                    ">
+
+                        <h2 style="
+                            text-align:center;
+                            color:#111;
+                            margin-bottom:20px;
+                        ">
+                            Thank You for Visiting ZSB
+                        </h2>
+
+                        <p>
+                            Dear ${visitor.name || "Visitor"},
+                        </p>
+
+                        <p>
+                            We hope your work/query has been addressed to your satisfaction during your visit to ${visitor.zsbBranch || "ZSB"}.
+                        </p>
+
+                        <p>
+                            If you have any feedback or grievance regarding your visit, please let us know using the link below:
+                        </p>
+
+                        <p style="text-align:center; margin:20px 0;">
+                            <a
+                                href="https://wb-sainik-board-feedback-form.onrender.com"
+                                style="
+                                    display:inline-block;
+                                    padding:10px 20px;
+                                    background:navy;
+                                    color:#fff;
+                                    text-decoration:none;
+                                    border-radius:6px;
+                                "
+                            >
+                                Share Feedback / Grievance
+                            </a>
+                        </p>
+
+                        <hr>
+
+                        <p style="
+                            font-size:12px;
+                            color:#666;
+                            text-align:center;
+                        ">
+                            ZSB Visitor Management System
+                        </p>
+
+                    </div>
+                    `
+
+                });
+
+                console.log(
+                    "✅ Completion email sent to",
+                    visitor.email
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "❌ Completion email failed:",
+                    err.message
+                );
+
+            }
+
+        });
+
+    }
 });
 
 // DELETE SINGLE VISITOR RECORD
@@ -1577,9 +1772,7 @@ app.post("/send-token-email", async (req, res) => {
                 ""
             );
 
-        await transporter.sendMail({
-
-            from: process.env.EMAIL_USER,
+        await sendEmail({
 
             to: email,
 
@@ -1675,9 +1868,7 @@ app.post("/send-token-email", async (req, res) => {
                     content: Buffer.from(
                         base64Data,
                         "base64"
-                    ),
-
-                    contentType: "image/jpeg"
+                    )
                 }
             ]
         });

@@ -373,23 +373,71 @@ async function toggleUserStatus(id, currentActive) {
 
 }
 
-async function resetPassword(id) {
+let resetPasswordTargetId = null;
+
+function resetPassword(id) {
+
+    const user =
+        users.find(u => u._id === id);
+
+    resetPasswordTargetId = id;
+
+    document.getElementById("resetPasswordUsername").textContent =
+        user ? `Resetting password for "${user.username}"` : "";
+
+    document.getElementById("resetNewPassword").value = "";
+    document.getElementById("resetConfirmPassword").value = "";
+    document.getElementById("resetPasswordError").textContent = "";
+
+    document.getElementById("resetPasswordModal").style.display = "flex";
+
+}
+
+function closeResetPasswordModal() {
+
+    document.getElementById("resetPasswordModal").style.display = "none";
+    resetPasswordTargetId = null;
+
+}
+
+function toggleResetPasswordVisibility(inputId, iconEl) {
+
+    const input = document.getElementById(inputId);
+    input.type = input.type === "password" ? "text" : "password";
+    iconEl.textContent = input.type === "password" ? "👁" : "🙈";
+
+}
+
+async function confirmResetPassword() {
 
     const newPassword =
-        prompt("Enter a new password (minimum 8 characters):");
+        document.getElementById("resetNewPassword").value;
 
-    if (!newPassword) return;
+    const confirmPassword =
+        document.getElementById("resetConfirmPassword").value;
 
-    if (newPassword.length < 8) {
+    const errorEl =
+        document.getElementById("resetPasswordError");
 
-        alert("Password must contain at least 8 characters.");
+    errorEl.textContent = "";
+
+    if (!newPassword || !confirmPassword) {
+
+        errorEl.textContent = "Fill in both fields.";
+        return;
+
+    }
+
+    if (newPassword !== confirmPassword) {
+
+        errorEl.textContent = "Passwords do not match.";
         return;
 
     }
 
     const response =
         await fetch(
-            `/admin/users/${id}/password`,
+            `/admin/users/${resetPasswordTargetId}/password`,
             {
                 method: "PATCH",
 
@@ -406,7 +454,78 @@ async function resetPassword(id) {
     const result =
         await response.json();
 
-    showToast(result.message || (result.success ? "Password updated." : "Unable to reset password."));
+    if (!result.success) {
+
+        errorEl.textContent = result.message || "Unable to reset password.";
+        return;
+
+    }
+
+    closeResetPasswordModal();
+    showToast(result.message || "Password updated.");
+
+}
+
+// ================= ACCOUNT SETTINGS =================
+
+async function openAccountSettingsModal() {
+
+    if (users.length === 0) {
+        await loadUsers();
+    }
+
+    const me =
+        users.find(u => u.username === window.currentUser.username);
+
+    document.getElementById("accountEmail").value =
+        (me && me.email) || "";
+
+    document.getElementById("accountSettingsModal").style.display = "flex";
+
+}
+
+function closeAccountSettingsModal() {
+
+    document.getElementById("accountSettingsModal").style.display = "none";
+
+}
+
+async function saveAccountEmail() {
+
+    const email =
+        document.getElementById("accountEmail").value.trim();
+
+    if (!email) {
+        showToast("Enter an email address.");
+        return;
+    }
+
+    const response =
+        await fetch(
+            "/admin/account/email",
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({ email })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to update email.");
+        return;
+
+    }
+
+    closeAccountSettingsModal();
+    showToast("Email updated successfully.");
 
 }
 
@@ -1057,6 +1176,18 @@ window.addEventListener("click", function (event) {
 
     }
 
+    if (event.target === document.getElementById("accountSettingsModal")) {
+
+        closeAccountSettingsModal();
+
+    }
+
+    if (event.target === document.getElementById("resetPasswordModal")) {
+
+        closeResetPasswordModal();
+
+    }
+
 });
 
 document.addEventListener(
@@ -1119,7 +1250,23 @@ document.addEventListener(
                 .getElementById("dataManagementPanel")
                 .style.display = "block";
 
+            document
+                .getElementById("accountSettingsBtn")
+                .style.display = "inline-block";
+
         }
+
+        document
+            .getElementById("accountSettingsBtn")
+            .addEventListener("click", openAccountSettingsModal);
+
+        document
+            .getElementById("saveAccountEmailBtn")
+            .addEventListener("click", saveAccountEmail);
+
+        document
+            .getElementById("confirmResetPasswordBtn")
+            .addEventListener("click", confirmResetPassword);
 
         const visitorTab =
             document.getElementById("visitorTab");

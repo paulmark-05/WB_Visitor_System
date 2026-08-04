@@ -228,6 +228,43 @@
         #expiredOverlay .checkmark {
             background: #fdecea;
         }
+
+        /* ── FORGOT PASSWORD ── */
+        .forgot-link {
+            display: block;
+            text-align: center;
+            margin-top: 14px;
+            font-size: 13px;
+            color: #0d2359;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .password-field-wrap {
+            position: relative;
+        }
+
+        .password-field-wrap input {
+            padding-right: 42px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 16px;
+            user-select: none;
+        }
+
+        .modal-step {
+            display: none;
+        }
+
+        .modal-step.active {
+            display: block;
+        }
     </style>
 </head>
 <script>
@@ -280,11 +317,72 @@
             <button class="login-btn" onclick="login()">Login to Dashboard</button>
 
             <div class="error-msg" id="errorMsg"></div>
+
+            <span class="forgot-link" onclick="openForgotModal()">Forgot password?</span>
         </div>
 
     </div>
 
     <p class="footer-note">Session valid for 12 hours · Secured access</p>
+
+    <!-- Forgot Password Overlay -->
+    <div class="overlay" id="forgotOverlay" style="display:none">
+        <div class="overlay-box" style="max-width:380px; text-align:left;">
+
+            <!-- STEP 1: request OTP -->
+            <div class="modal-step active" id="forgotStep1">
+                <h2 style="margin-bottom:6px;">Reset Password</h2>
+                <p style="color:#666; font-size:13px; margin-bottom:18px;">
+                    Enter your admin username. If an email is on file, we'll send a one-time code.
+                </p>
+
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="forgotUsername" placeholder="Enter username">
+                </div>
+
+                <div class="error-msg" id="forgotStep1Error"></div>
+
+                <button class="login-btn" onclick="requestOtp()">Send OTP</button>
+                <span class="forgot-link" onclick="closeForgotModal()">Cancel</span>
+            </div>
+
+            <!-- STEP 2: enter OTP + new password -->
+            <div class="modal-step" id="forgotStep2">
+                <h2 style="margin-bottom:6px;">Enter Code</h2>
+                <p style="color:#666; font-size:13px; margin-bottom:18px;">
+                    Check your email for the 6-digit code (valid for 10 minutes), then set a new password.
+                </p>
+
+                <div class="field">
+                    <label>OTP Code</label>
+                    <input type="text" id="otpCode" placeholder="6-digit code" maxlength="6">
+                </div>
+
+                <div class="field">
+                    <label>New Password</label>
+                    <div class="password-field-wrap">
+                        <input type="password" id="otpNewPassword" placeholder="New password">
+                        <span class="toggle-password" onclick="togglePasswordVisibility('otpNewPassword', this)">👁</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Confirm Password</label>
+                    <div class="password-field-wrap">
+                        <input type="password" id="otpConfirmPassword" placeholder="Confirm new password">
+                        <span class="toggle-password" onclick="togglePasswordVisibility('otpConfirmPassword', this)">👁</span>
+                    </div>
+                </div>
+
+                <div class="error-msg" id="forgotStep2Error"></div>
+
+                <button class="login-btn" onclick="submitOtpReset()">Reset Password</button>
+                <span class="forgot-link" onclick="closeForgotModal()">Cancel</span>
+            </div>
+
+        </div>
+    </div>
 
     <!-- Success Overlay -->
     <div class="overlay" id="successOverlay" style="display:none">
@@ -348,6 +446,102 @@
 
             } catch (err) {
                 errorMsg.textContent = "Network error. Please try again.";
+            }
+        }
+
+        function togglePasswordVisibility(inputId, iconEl) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === "password" ? "text" : "password";
+            iconEl.textContent = input.type === "password" ? "👁" : "🙈";
+        }
+
+        function openForgotModal() {
+            document.getElementById("forgotUsername").value =
+                document.getElementById("username").value.trim();
+            document.getElementById("forgotStep1Error").textContent = "";
+            document.getElementById("forgotStep2Error").textContent = "";
+            document.getElementById("forgotStep1").classList.add("active");
+            document.getElementById("forgotStep2").classList.remove("active");
+            document.getElementById("forgotOverlay").style.display = "flex";
+        }
+
+        function closeForgotModal() {
+            document.getElementById("forgotOverlay").style.display = "none";
+            document.getElementById("otpCode").value = "";
+            document.getElementById("otpNewPassword").value = "";
+            document.getElementById("otpConfirmPassword").value = "";
+        }
+
+        async function requestOtp() {
+            const username = document.getElementById("forgotUsername").value.trim();
+            const errorEl = document.getElementById("forgotStep1Error");
+            errorEl.textContent = "";
+
+            if (!username) {
+                errorEl.textContent = "Enter your username.";
+                return;
+            }
+
+            try {
+                const res = await fetch("/forgot-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    errorEl.textContent = data.message || "Unable to send OTP.";
+                    return;
+                }
+
+                document.getElementById("forgotStep1").classList.remove("active");
+                document.getElementById("forgotStep2").classList.add("active");
+
+            } catch (err) {
+                errorEl.textContent = "Network error. Please try again.";
+            }
+        }
+
+        async function submitOtpReset() {
+            const username = document.getElementById("forgotUsername").value.trim();
+            const otp = document.getElementById("otpCode").value.trim();
+            const newPassword = document.getElementById("otpNewPassword").value;
+            const confirmPassword = document.getElementById("otpConfirmPassword").value;
+            const errorEl = document.getElementById("forgotStep2Error");
+            errorEl.textContent = "";
+
+            if (!otp || !newPassword || !confirmPassword) {
+                errorEl.textContent = "Fill in all fields.";
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                errorEl.textContent = "Passwords do not match.";
+                return;
+            }
+
+            try {
+                const res = await fetch("/reset-password-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, otp, newPassword })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    errorEl.textContent = data.message || "Unable to reset password.";
+                    return;
+                }
+
+                closeForgotModal();
+                document.getElementById("errorMsg").textContent =
+                    "Password reset successfully. Please log in.";
+
+            } catch (err) {
+                errorEl.textContent = "Network error. Please try again.";
             }
         }
     </script>
