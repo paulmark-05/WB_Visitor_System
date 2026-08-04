@@ -99,5 +99,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "qrcode": "^1.5.4"
+  }
 }

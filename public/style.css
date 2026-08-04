@@ -137,6 +137,16 @@ button:hover {
     transform: scale(1.05);
 }
 
+.danger-btn {
+    background: #d90606;
+    border-color: #d90606;
+}
+
+.danger-btn:hover {
+    background: #a80404;
+    border-color: #a80404;
+}
+
 
 table {
 

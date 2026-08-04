@@ -224,6 +224,24 @@ function renderUsers() {
 
             }
 
+                ${user.role !== "superadmin"
+
+                ?
+
+                `<button
+                        class="danger-btn"
+                        onclick="deleteUser('${user._id}', '${user.username}')">
+
+                        Delete
+
+                    </button>`
+
+                :
+
+                ""
+
+            }
+
             </td>
 
         `;
@@ -321,6 +339,108 @@ console.log("Create User clicked");
 
 }
 
+async function toggleUserStatus(id, currentActive) {
+
+    const response =
+        await fetch(
+            `/admin/users/${id}/status`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    active: !currentActive
+                })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to update user.");
+        return;
+
+    }
+
+    await loadUsers();
+    showToast(result.message);
+
+}
+
+async function resetPassword(id) {
+
+    const newPassword =
+        prompt("Enter a new password (minimum 8 characters):");
+
+    if (!newPassword) return;
+
+    if (newPassword.length < 8) {
+
+        alert("Password must contain at least 8 characters.");
+        return;
+
+    }
+
+    const response =
+        await fetch(
+            `/admin/users/${id}/password`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    password: newPassword
+                })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    showToast(result.message || (result.success ? "Password updated." : "Unable to reset password."));
+
+}
+
+async function deleteUser(id, username) {
+
+    const confirmDelete =
+        confirm(
+            `Permanently delete user "${username}"? This cannot be undone.`
+        );
+
+    if (!confirmDelete) return;
+
+    const response =
+        await fetch(
+            `/admin/users/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to delete user.");
+        return;
+
+    }
+
+    await loadUsers();
+    showToast("User deleted successfully.");
+
+}
+
 // ================= TABLE =================
 function renderTable(data) {
 
@@ -349,7 +469,10 @@ function renderTable(data) {
         <td>${v.phone}</td>
         <td>${v.email || "—"}</td>
         <td>${formatRegistration(v.createdAt)}</td>
-        
+        ${window.currentUser && window.currentUser.role === "superadmin"
+            ? `<td><button class="danger-btn" onclick="deleteVisitor(event, '${v._id}')">Delete</button></td>`
+            : ""
+        }
         `;
 
         tbody.appendChild(tr);
@@ -486,6 +609,93 @@ async function toggleStatus(
     }
 
     updateCounters(allData);
+}
+
+async function deleteVisitor(event, id) {
+
+    event.stopPropagation();
+
+    const confirmDelete =
+        confirm(
+            "Permanently delete this visitor record? This cannot be undone."
+        );
+
+    if (!confirmDelete) return;
+
+    const response =
+        await fetch(
+            `/admin/visitors/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to delete visitor record.");
+        return;
+
+    }
+
+    allData =
+        allData.filter(v => v._id !== id);
+
+    renderTable(allData);
+    updateCounters(allData);
+    showToast("Visitor record deleted.");
+
+}
+
+async function purgeVisitorsBefore() {
+
+    const before =
+        document.getElementById("purgeBeforeDate").value;
+
+    if (!before) {
+
+        alert("Select a cutoff date first.");
+        return;
+
+    }
+
+    const confirmPurge =
+        confirm(
+            `Permanently delete ALL visitor records before ${before}? This cannot be undone.`
+        );
+
+    if (!confirmPurge) return;
+
+    const response =
+        await fetch(
+            "/admin/visitors",
+            {
+                method: "DELETE",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({ before })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to delete records.");
+        return;
+
+    }
+
+    showToast(`Deleted ${result.deletedCount} record(s).`);
+
+    await loadVisitors();
+
 }
 
 // ================= COUNTERS =================
@@ -792,6 +1002,18 @@ document.addEventListener(
 
         }
 
+        if (window.currentUser.role === "superadmin") {
+
+            document
+                .getElementById("visitorActionsHeader")
+                .style.display = "";
+
+            document
+                .getElementById("dataManagementPanel")
+                .style.display = "block";
+
+        }
+
         const visitorTab =
             document.getElementById("visitorTab");
 
@@ -875,6 +1097,12 @@ document.addEventListener(
         exportBtn.addEventListener("click", () => {
             exportModal.style.display = "flex";
         });
+
+        const purgeBtn = document.getElementById("purgeVisitorsBtn");
+
+        if (purgeBtn) {
+            purgeBtn.addEventListener("click", purgeVisitorsBefore);
+        }
 
         document
             .getElementById(

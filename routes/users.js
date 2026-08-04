@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 
 const AdminUser = require("../models/AdminUser");
+const AuditLog = require("../models/AuditLog");
 
 const requireSuperAdmin = require("../middleware/requireSuperAdmin");
 
@@ -558,6 +559,137 @@ router.patch(
     }
 
 );
+/*
+======================================================
+DELETE USER
+
+DELETE /admin/users/:id
+
+Super Admin only
+======================================================
+*/
+
+router.delete(
+    "/users/:id",
+    requireSuperAdmin,
+    async (req, res) => {
+
+        try {
+
+            const user =
+                await AdminUser.findById(req.params.id);
+
+            if (!user) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "User not found."
+
+                });
+
+            }
+
+            /* ---------------------------------
+               Prevent deleting yourself
+            ---------------------------------- */
+
+            if (
+
+                req.session.user.username ===
+                user.username
+
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "You cannot delete your own account."
+
+                });
+
+            }
+
+            /* ---------------------------------
+               Prevent deleting the last Super Admin
+            ---------------------------------- */
+
+            if (user.role === "superadmin") {
+
+                const superAdminCount =
+                    await AdminUser.countDocuments({
+
+                        role: "superadmin"
+
+                    });
+
+                if (superAdminCount <= 1) {
+
+                    return res.status(400).json({
+
+                        success: false,
+
+                        message:
+                            "Cannot delete the last remaining Super Admin."
+
+                    });
+
+                }
+
+            }
+
+            await AdminUser.findByIdAndDelete(req.params.id);
+
+            await AuditLog.create({
+
+                action: "delete_user",
+
+                performedBy:
+                    req.session.user.username,
+
+                targetType: "AdminUser",
+
+                targetId: req.params.id,
+
+                details:
+                    `Deleted user "${user.username}" (${user.role})`
+
+            });
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    "User deleted successfully."
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to delete user."
+
+            });
+
+        }
+
+    }
+
+);
+
 /*
 ======================================================
 EXPORT ROUTER

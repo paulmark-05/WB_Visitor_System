@@ -217,6 +217,7 @@
                             <th>Service No.</th>
                             <th>Phone</th>
                             <th>Email</th>
+                            <th id="visitorActionsHeader" style="display:none;">Actions</th>
 
                         </tr>
                     </thead>
@@ -229,6 +230,30 @@
             <br>
 
             <button id="exportBtn">Download Excel</button>
+
+            <div id="dataManagementPanel" style="display:none; margin-top:20px;">
+
+                <h3>Data Management</h3>
+
+                <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        flex-wrap:wrap;
+                        ">
+
+                    <div>
+                        <label>Delete records before:</label>
+                        <input type="date" id="purgeBeforeDate">
+                    </div>
+
+                    <button id="purgeVisitorsBtn" class="danger-btn">
+                        Delete Records Before Date
+                    </button>
+
+                </div>
+
+            </div>
 
             <div id="exportModal" class="export-modal">
 

@@ -499,95 +499,47 @@ font-family:Poppins;
     <div
     style="
     display:flex;
+    flex-direction:column;
 
     flex:1;
     min-height:0;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:10px;
+
+    text-align:center;
     ">
 
-        <!-- QR 1 -->
-
-        <div
-        style="
-        flex:1;
-
-        border-right:2px solid #000;
-
-        display:flex;
-        flex-direction:column;
-
-        align-items:center;
-        justify-content:center;
-
-        padding:10px;
-
-        text-align:center;
-        ">
+        <a
+        href="upi://pay?pa=ZILASAINIK21313200%40iob&pn=West%20Bengal%20Sainik%20Board&cu=INR"
+        target="_blank"
+        rel="noopener"
+        >
 
             <img
-            src="qr-support.jpeg"
+            src="qr-payment.png"
 
             style="
-            max-width:75%;
-            max-height:90px;
+            max-width:55%;
+            max-height:140px;
             object-fit:contain;
             ">
 
-            <div
-            style="
-            margin-top:6px;
-
-            font-size:10px;
-            line-height:1.25;
-
-            max-width:95%;
-            ">
-
-                Donate to support website maintenance and keep this visitor management system free of cost for all. Developed and conceptualized by a veteran's dependent daughter.
-
-            </div>
-
-        </div>
-
-
-        <!-- QR 2 -->
+        </a>
 
         <div
         style="
-        flex:1;
+        margin-top:6px;
 
-        display:flex;
-        flex-direction:column;
+        font-size:10px;
+        line-height:1.25;
 
-        align-items:center;
-        justify-content:center;
-
-        padding:10px;
-
-        text-align:center;
+        max-width:95%;
         ">
 
-            <img
-            src="qr-donate.jpeg"
-
-            style="
-            max-width:75%;
-            max-height:90px;
-            object-fit:contain;
-            ">
-
-            <div
-            style="
-            margin-top:6px;
-
-            font-size:10px;
-            line-height:1.25;
-
-            max-width:95%;
-            ">
-
-                Donate to the Armed Forces Flag Day Fund (AFFD) to support the social and financial welfare of all ex-servicemen,  and their widows through KSB.
-
-            </div>
+            Tap the QR (on your phone) to donate via UPI and support this free visitor management system and the Armed Forces Flag Day Fund (AFFD) welfare of ex-servicemen and their families.
 
         </div>
 
