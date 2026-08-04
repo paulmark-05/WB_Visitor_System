@@ -27,6 +27,8 @@ function sanitizeUser(user) {
 
         assignedCounter: user.assignedCounter,
 
+        email: user.email,
+
         active: user.active,
 
         createdAt: user.createdAt,
@@ -137,21 +139,6 @@ router.post(
 
                     message:
                         "Username, password and role are required."
-
-                });
-
-            }
-
-            if (
-                password.length < 8
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Password must contain at least 8 characters."
 
                 });
 
@@ -482,17 +469,14 @@ router.patch(
 
             const { password } = req.body;
 
-            if (
-                !password ||
-                password.length < 8
-            ) {
+            if (!password) {
 
                 return res.status(400).json({
 
                     success: false,
 
                     message:
-                        "Password must contain at least 8 characters."
+                        "A new password is required."
 
                 });
 
@@ -681,6 +665,101 @@ router.delete(
 
                 message:
                     "Unable to delete user."
+
+            });
+
+        }
+
+    }
+
+);
+
+/*
+======================================================
+UPDATE MY OWN EMAIL (for OTP password reset)
+
+PATCH /admin/account/email
+
+Any logged-in admin, self only
+======================================================
+*/
+
+router.patch(
+    "/account/email",
+    async (req, res) => {
+
+        if (!req.session.user) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Session expired"
+            });
+
+        }
+
+        try {
+
+            const { email } = req.body;
+
+            if (
+                !email ||
+                !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "A valid email address is required."
+
+                });
+
+            }
+
+            const user =
+                await AdminUser.findById(req.session.user.id);
+
+            if (!user) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "User not found."
+
+                });
+
+            }
+
+            user.email = email.trim();
+
+            await user.save();
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    "Email updated successfully.",
+
+                data: { email: user.email }
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to update email."
 
             });
 

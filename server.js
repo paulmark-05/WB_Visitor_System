@@ -879,6 +879,173 @@ app.post(
 );
 
 /* ================================
+   🔑 FORGOT PASSWORD (email OTP)
+================================ */
+
+const crypto = require("crypto");
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// REQUEST OTP
+app.post(
+    "/forgot-password",
+    async (req, res) => {
+
+        try {
+
+            const { username } = req.body;
+
+            const genericResponse = {
+                success: true,
+                message:
+                    "If that account has an email on file, an OTP has been sent to it."
+            };
+
+            if (!username) {
+                return res.json(genericResponse);
+            }
+
+            const user =
+                await AdminUser.findOne({ username });
+
+            if (!user || !user.email) {
+                return res.json(genericResponse);
+            }
+
+            // Cooldown: block re-requesting for the first
+            // minute after an OTP was already issued.
+            if (
+                user.resetOtpExpires &&
+                user.resetOtpExpires.getTime() - Date.now() >
+                    OTP_TTL_MS - 60 * 1000
+            ) {
+
+                return res.status(429).json({
+                    success: false,
+                    message: "Please wait a minute before requesting another OTP."
+                });
+
+            }
+
+            const otp =
+                crypto.randomInt(100000, 1000000).toString();
+
+            user.resetOtpHash =
+                await bcrypt.hash(otp, 10);
+
+            user.resetOtpExpires =
+                new Date(Date.now() + OTP_TTL_MS);
+
+            await user.save();
+
+            await sendEmail({
+
+                to: user.email,
+
+                subject: "ZSB Admin Password Reset OTP",
+
+                html: `
+                <div style="font-family:Arial,sans-serif; max-width:480px; margin:auto; padding:20px;">
+                    <h2>Password Reset OTP</h2>
+                    <p>Use the code below to reset the password for admin account <b>${user.username}</b>. This code expires in 10 minutes.</p>
+                    <p style="font-size:32px; font-weight:bold; letter-spacing:6px; text-align:center; margin:24px 0;">${otp}</p>
+                    <p>If you didn't request this, you can safely ignore this email.</p>
+                </div>
+                `
+
+            });
+
+            return res.json(genericResponse);
+
+        } catch (err) {
+
+            console.error("❌ Forgot-password error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to process request."
+            });
+
+        }
+
+    }
+);
+
+// VERIFY OTP + SET NEW PASSWORD
+app.post(
+    "/reset-password-otp",
+    async (req, res) => {
+
+        try {
+
+            const { username, otp, newPassword } = req.body;
+
+            if (!username || !otp || !newPassword) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Username, OTP and new password are required."
+                });
+
+            }
+
+            const user =
+                await AdminUser.findOne({ username });
+
+            if (
+                !user ||
+                !user.resetOtpHash ||
+                !user.resetOtpExpires ||
+                user.resetOtpExpires.getTime() < Date.now()
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            const otpValid =
+                await bcrypt.compare(otp, user.resetOtpHash);
+
+            if (!otpValid) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired OTP."
+                });
+
+            }
+
+            user.password =
+                await bcrypt.hash(newPassword, 10);
+
+            user.resetOtpHash = null;
+            user.resetOtpExpires = null;
+
+            await user.save();
+
+            return res.json({
+                success: true,
+                message: "Password reset successfully."
+            });
+
+        } catch (err) {
+
+            console.error("❌ Reset-password error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to reset password."
+            });
+
+        }
+
+    }
+);
+
+/* ================================
    🧑‍💼 ADMIN APIs
 ================================ */
 

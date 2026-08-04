@@ -44,6 +44,29 @@ const adminUserSchema = new mongoose.Schema({
         type:Date,
 
         default:null
+    },
+
+    email:{
+
+        type:String,
+
+        default:null,
+
+        trim:true
+    },
+
+    resetOtpHash:{
+
+        type:String,
+
+        default:null
+    },
+
+    resetOtpExpires:{
+
+        type:Date,
+
+        default:null
     }
 
 },
