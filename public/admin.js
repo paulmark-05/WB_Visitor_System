@@ -327,7 +327,7 @@ console.log("Create User clicked");
 
     if (!result.success) {
 
-        showToast(result.message);
+        showToast(result.message, "error");
 
         return;
 
@@ -363,7 +363,7 @@ async function toggleUserStatus(id, currentActive) {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to update user.");
+        showToast(result.message || "Unable to update user.", "error");
         return;
 
     }
@@ -389,6 +389,12 @@ function resetPassword(id) {
     document.getElementById("resetConfirmPassword").value = "";
     document.getElementById("resetPasswordError").textContent = "";
 
+    const hint = document.getElementById("resetMatchHint");
+    hint.textContent = "";
+    hint.classList.remove("match-ok", "match-bad");
+
+    document.getElementById("confirmResetPasswordBtn").disabled = false;
+
     document.getElementById("resetPasswordModal").style.display = "flex";
 
 }
@@ -405,6 +411,40 @@ function toggleResetPasswordVisibility(inputId, iconEl) {
     const input = document.getElementById(inputId);
     input.type = input.type === "password" ? "text" : "password";
     iconEl.textContent = input.type === "password" ? "👁" : "🙈";
+
+}
+
+function checkResetPasswordsMatch() {
+
+    const newPassword =
+        document.getElementById("resetNewPassword").value;
+
+    const confirmPassword =
+        document.getElementById("resetConfirmPassword").value;
+
+    const hint =
+        document.getElementById("resetMatchHint");
+
+    const submitBtn =
+        document.getElementById("confirmResetPasswordBtn");
+
+    hint.classList.remove("match-ok", "match-bad");
+
+    if (!confirmPassword) {
+        hint.textContent = "";
+        submitBtn.disabled = false;
+        return;
+    }
+
+    if (newPassword === confirmPassword) {
+        hint.textContent = "Passwords match";
+        hint.classList.add("match-ok");
+        submitBtn.disabled = false;
+    } else {
+        hint.textContent = "Passwords do not match";
+        hint.classList.add("match-bad");
+        submitBtn.disabled = true;
+    }
 
 }
 
@@ -496,7 +536,7 @@ async function saveAccountEmail() {
         document.getElementById("accountEmail").value.trim();
 
     if (!email) {
-        showToast("Enter an email address.");
+        showToast("Enter an email address.", "error");
         return;
     }
 
@@ -519,7 +559,7 @@ async function saveAccountEmail() {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to update email.");
+        showToast(result.message || "Unable to update email.", "error");
         return;
 
     }
@@ -551,7 +591,7 @@ async function deleteUser(id, username) {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to delete user.");
+        showToast(result.message || "Unable to delete user.", "error");
         return;
 
     }
@@ -765,7 +805,7 @@ async function deleteVisitor(event, id) {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to delete visitor record.");
+        showToast(result.message || "Unable to delete visitor record.", "error");
         return;
 
     }
@@ -847,7 +887,7 @@ async function deleteSelectedVisitors() {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to delete records.");
+        showToast(result.message || "Unable to delete records.", "error");
         return;
 
     }
@@ -909,7 +949,7 @@ async function purgeVisitorsInRange() {
 
     if (!result.success) {
 
-        showToast(result.message || "Unable to delete records.");
+        showToast(result.message || "Unable to delete records.", "error");
         return;
 
     }
@@ -1268,6 +1308,14 @@ document.addEventListener(
             .getElementById("confirmResetPasswordBtn")
             .addEventListener("click", confirmResetPassword);
 
+        document
+            .getElementById("resetNewPassword")
+            .addEventListener("input", checkResetPasswordsMatch);
+
+        document
+            .getElementById("resetConfirmPassword")
+            .addEventListener("input", checkResetPasswordsMatch);
+
         const visitorTab =
             document.getElementById("visitorTab");
 
@@ -1466,21 +1514,14 @@ async function startExport() {
 
         window.URL.revokeObjectURL(url);
 
-        // toast
-        const toast = document.getElementById("toast");
-
-        toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
+        showToast("Excel downloaded successfully.");
 
         closeExportModal();
 
     } catch (err) {
 
         console.error(err);
-        alert("Excel download failed");
+        showToast("Excel download failed.", "error");
 
     }
 }
@@ -1492,20 +1533,44 @@ async function startExport() {
 function closeExportModal() {
     exportModal.style.display = "none";
 }
-function showToast(message) {
+let toastHideTimer = null;
+
+function showToast(message, type = "success") {
 
     const toast =
         document.getElementById("toast");
 
-    toast.textContent = message;
+    const icons = {
+        success: "✓",
+        error: "✕",
+        info: "ℹ"
+    };
 
-    toast.classList.add("show");
+    toast.querySelector(".toast-icon").textContent =
+        icons[type] || icons.success;
 
-    setTimeout(() => {
+    toast.querySelector(".toast-message").textContent =
+        message;
 
-        toast.classList.remove("show");
+    toast.classList.remove(
+        "toast-success",
+        "toast-error",
+        "toast-info"
+    );
 
-    }, 3000);
+    toast.classList.add(
+        `toast-${type}`,
+        "show"
+    );
+
+    clearTimeout(toastHideTimer);
+
+    toastHideTimer =
+        setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 3000);
 
 }
 
