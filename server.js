@@ -221,77 +221,68 @@ const io = new Server(server);
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Atlas Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
-const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 
+/* ================================
+   📧 EMAIL (Resend HTTP API)
 
-const transporter =
-    nodemailer.createTransport({
+   Render blocks/times-out raw outbound
+   SMTP (ports 25/465/587), which is why
+   nodemailer kept failing here regardless
+   of host/port/IPv4 fixes. Resend sends
+   over normal HTTPS, so it isn't affected.
+================================ */
 
-        host:
-            "smtp.gmail.com",
+const { Resend } = require("resend");
 
-        port:
-            587,
+const resend =
+    new Resend(process.env.RESEND_API_KEY);
 
-        secure:
-            false,
+const EMAIL_FROM =
+    process.env.EMAIL_FROM ||
+    "onboarding@resend.dev";
 
-        requireTLS:
-            true,
+if (!process.env.RESEND_API_KEY) {
 
-        auth: {
+    console.error(
+        "❌ RESEND_API_KEY is not set — token emails will fail."
+    );
 
-            user:
-                process.env
-                    .EMAIL_USER,
+} else {
 
-            pass:
-                process.env
-                    .EMAIL_PASS
-        },
+    console.log(
+        "✅ Resend email client ready"
+    );
+}
 
-        family: 4,
+async function sendEmail({ to, subject, html, attachments }) {
 
-        tls: {
+    const { data, error } =
+        await resend.emails.send({
 
-            rejectUnauthorized:
-                false
-        },
+            from: EMAIL_FROM,
 
-        connectionTimeout:
-            30000,
+            to,
 
-        greetingTimeout:
-            30000,
+            subject,
 
-        socketTimeout:
-            30000
-    });
+            html,
 
+            attachments
+        });
 
-transporter.verify(
+    if (error) {
 
-    (error) => {
+        throw new Error(
+            error.message ||
+            "Resend API error"
+        );
 
-        if (error) {
-
-            console.error(
-
-                "❌ SMTP VERIFY ERROR:",
-
-                error
-            );
-        }
-
-        else {
-
-            console.log(
-                "✅ SMTP READY"
-            );
-        }
     }
-);
+
+    return data;
+
+}
 
 
 /* ================================
@@ -669,13 +660,9 @@ app.post("/book", async (req, res) => {
                         );
                     }
 
-                    // SEND EMAIL 
+                    // SEND EMAIL
                     const info =
-                        await transporter.sendMail({
-
-                            from:
-                                process.env
-                                    .EMAIL_USER,
+                        await sendEmail({
 
                             to:
                                 email,
@@ -752,7 +739,7 @@ app.post("/book", async (req, res) => {
 
                     console.log(
                         "✅ Email Sent: ",
-                        info.messageId
+                        info?.id
                     );
 
                 }
@@ -1577,9 +1564,7 @@ app.post("/send-token-email", async (req, res) => {
                 ""
             );
 
-        await transporter.sendMail({
-
-            from: process.env.EMAIL_USER,
+        await sendEmail({
 
             to: email,
 
@@ -1675,9 +1660,7 @@ app.post("/send-token-email", async (req, res) => {
                     content: Buffer.from(
                         base64Data,
                         "base64"
-                    ),
-
-                    contentType: "image/jpeg"
+                    )
                 }
             ]
         });
