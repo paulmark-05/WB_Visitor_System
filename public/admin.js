@@ -96,6 +96,7 @@ function formatRegistration(dateStr) {
 
 
 let allData = [];
+let selectedVisitorIds = new Set();
 
 
 
@@ -453,6 +454,16 @@ function renderTable(data) {
         tr.dataset.id = v._id;
 
         tr.innerHTML = `
+        ${window.currentUser && window.currentUser.role === "superadmin"
+            ? `<td onclick="event.stopPropagation()">
+                <input type="checkbox"
+                class="visitor-select-checkbox"
+                data-id="${v._id}"
+                ${selectedVisitorIds.has(v._id) ? "checked" : ""}
+                onchange="toggleVisitorSelection('${v._id}', this.checked)">
+                </td>`
+            : ""
+        }
         <td>${formatDate(v.date)}</td>
         <td>${v.rank || ""}</td>
         <td>${v.name || ""}</td>
@@ -643,27 +654,119 @@ async function deleteVisitor(event, id) {
     allData =
         allData.filter(v => v._id !== id);
 
+    selectedVisitorIds.delete(id);
+    updateSelectedCount();
+
     renderTable(allData);
     updateCounters(allData);
     showToast("Visitor record deleted.");
 
 }
 
-async function purgeVisitorsBefore() {
+// ================= MULTI-SELECT DELETE =================
 
-    const before =
-        document.getElementById("purgeBeforeDate").value;
+function toggleVisitorSelection(id, isChecked) {
 
-    if (!before) {
+    if (isChecked) {
+        selectedVisitorIds.add(id);
+    } else {
+        selectedVisitorIds.delete(id);
+    }
 
-        alert("Select a cutoff date first.");
+    updateSelectedCount();
+
+}
+
+function updateSelectedCount() {
+
+    const countEl =
+        document.getElementById("selectedCount");
+
+    const btn =
+        document.getElementById("deleteSelectedBtn");
+
+    if (!countEl || !btn) return;
+
+    countEl.textContent =
+        selectedVisitorIds.size;
+
+    btn.disabled =
+        selectedVisitorIds.size === 0;
+
+}
+
+async function deleteSelectedVisitors() {
+
+    if (selectedVisitorIds.size === 0) return;
+
+    const ids =
+        [...selectedVisitorIds];
+
+    const confirmDelete =
+        confirm(
+            `Permanently delete ${ids.length} selected visitor record(s)? This cannot be undone.`
+        );
+
+    if (!confirmDelete) return;
+
+    const response =
+        await fetch(
+            "/admin/visitors",
+            {
+                method: "DELETE",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({ ids })
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        showToast(result.message || "Unable to delete records.");
+        return;
+
+    }
+
+    selectedVisitorIds.clear();
+    updateSelectedCount();
+
+    showToast(`Deleted ${result.deletedCount} record(s).`);
+
+    await loadVisitors();
+
+}
+
+async function purgeVisitorsInRange() {
+
+    const from =
+        document.getElementById("purgeFromDate").value;
+
+    const to =
+        document.getElementById("purgeToDate").value;
+
+    if (!from || !to) {
+
+        alert("Select both a From and a To date first.");
+        return;
+
+    }
+
+    if (from > to) {
+
+        alert("The From date must be on or before the To date.");
         return;
 
     }
 
     const confirmPurge =
         confirm(
-            `Permanently delete ALL visitor records before ${before}? This cannot be undone.`
+            `Permanently delete ALL visitor records from ${from} to ${to} (inclusive)? This cannot be undone.`
         );
 
     if (!confirmPurge) return;
@@ -678,7 +781,7 @@ async function purgeVisitorsBefore() {
                     "Content-Type": "application/json"
                 },
 
-                body: JSON.stringify({ before })
+                body: JSON.stringify({ from, to })
             }
         );
 
@@ -1009,6 +1112,10 @@ document.addEventListener(
                 .style.display = "";
 
             document
+                .getElementById("visitorSelectHeader")
+                .style.display = "";
+
+            document
                 .getElementById("dataManagementPanel")
                 .style.display = "block";
 
@@ -1101,7 +1208,39 @@ document.addEventListener(
         const purgeBtn = document.getElementById("purgeVisitorsBtn");
 
         if (purgeBtn) {
-            purgeBtn.addEventListener("click", purgeVisitorsBefore);
+            purgeBtn.addEventListener("click", purgeVisitorsInRange);
+        }
+
+        const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener("click", deleteSelectedVisitors);
+        }
+
+        const selectAllVisitors = document.getElementById("selectAllVisitors");
+
+        if (selectAllVisitors) {
+
+            selectAllVisitors.addEventListener("change", () => {
+
+                document
+                    .querySelectorAll(".visitor-select-checkbox")
+                    .forEach(cb => {
+
+                        cb.checked = selectAllVisitors.checked;
+
+                        if (selectAllVisitors.checked) {
+                            selectedVisitorIds.add(cb.dataset.id);
+                        } else {
+                            selectedVisitorIds.delete(cb.dataset.id);
+                        }
+
+                    });
+
+                updateSelectedCount();
+
+            });
+
         }
 
         document
